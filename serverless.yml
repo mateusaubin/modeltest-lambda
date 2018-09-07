@@ -7,6 +7,7 @@ service: mestrado # NOTE: update this with your service name
 # PARAMS
 custom:
   inputqueue: "${self:service}-${self:provider.stage}-inputqueue"
+  sourceBucket: mestrado-dev-phyml-input
 
 provider:
   name: aws
@@ -18,10 +19,16 @@ provider:
 
 # you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
-    - Effect: "Allow"
+#    - Effect: "Allow"
+#      Action:
+#        - "SNS:Publish"
+#      Resource: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:custom.inputqueue}" ] ]  }
+    - Effect: Allow
       Action:
-        - "SNS:Publish"
-      Resource: { "Fn::Join" : ["", ["arn:aws:sns:${self:provider.region}:", { "Ref" : "AWS::AccountId" }, ":${self:custom.inputqueue}" ] ]  }
+        - s3:PutObject
+        - s3:GetObject
+      Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
+
 
 functions:
   modeltest:
@@ -34,7 +41,12 @@ functions:
 # you can add CloudFormation resource templates here
 #resources:
 #  Resources:
+#    phyml:
+#      Type: AWS::S3::Bucket
+#      Properties: 
+#        BucketName: "${self:service}-${self:provider.stage}-phyml-input"
 #  Outputs:
-#     NewOutput:
-#       Description: "Description for the output"
-#       Value: "Some output value"
+#     phymlBucket:
+#       Description: "S3 bucket for phyml input data"
+#       Value: { Fn::GetAtt : [ phyml, Arn ] }
+
