@@ -31,6 +31,8 @@ provider:
 
 package:
   exclude:
+    - .vscode/**
+    - .git/**
     - README.md
     - sns.json
 
