@@ -12,7 +12,8 @@
             "console": "integratedTerminal",
             "env": {
                 "IS_LOCAL": "True",
-                "VSCODE": "True"
+                "VSCODE": "True",
+                "DEBUG_FILE": "small.json"
             }
         }
     ]

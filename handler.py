@@ -33,7 +33,7 @@ if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
                         format="  %(levelname)-8s | %(message)s")
 
     # feed event file
-    with open('sns.json') as f:
+    with open(os.getenv('DEBUG_FILE')) as f:
         data = json.load(f)
         logging.warning("Local Debugger Session")
         execute(data, None)
