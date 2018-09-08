@@ -1,5 +1,4 @@
 import boto3
-import uuid
 import json
 import os
 from pathlib import Path
@@ -13,8 +12,9 @@ class SNSInterface:
         if bool(os.getenv('IS_LOCAL', False)):
             shutil.rmtree(self.tmp_folder)
 
-    def __init__(self, sns_record):
+    def __init__(self, sns_record, correlation_id):
         logging.debug('Processing Record: {}'.format(sns_record))
+        self._correlation_id = correlation_id
         self.file_info = self.parse(sns_record)
         self.s3 = boto3.client('s3')
 
@@ -31,11 +31,10 @@ class SNSInterface:
         return {'bucket': filedata[0], 'key': filedata[1]}
 
     def download(self):
-        tmp_guid = str(uuid.uuid4())
-        self.tmp_folder = os.path.join('/tmp', tmp_guid)
+        self.tmp_folder = os.path.join('/tmp', self._correlation_id)
         os.mkdir(self.tmp_folder)
         download_path = os.path.join(
-            '/tmp', tmp_guid, Path(self.file_info['key']).name)
+            '/tmp', self._correlation_id, Path(self.file_info['key']).name)
 
         logging.info("Downloading to: {}".format(download_path))
 
