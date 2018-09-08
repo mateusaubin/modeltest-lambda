@@ -29,6 +29,10 @@ provider:
         - s3:GetObject
       Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
 
+package:
+  exclude:
+    - README.md
+    - sns.json
 
 functions:
   modeltest:
