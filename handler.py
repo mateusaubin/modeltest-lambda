@@ -43,7 +43,7 @@ def execute(event, context):
 #upload_path = '/tmp/resized-{}'.format(key)
 #s3_client.upload_file(upload_path, '{}resized'.format(bucket), key)
 
-        if os.getenv('IS_LOCAL', False):
+        if bool(os.getenv('IS_LOCAL', False)):
             time.sleep(1)
             print('delete temp')
             shutil.rmtree(tmp_folder)
@@ -53,7 +53,7 @@ def execute(event, context):
     return { 'msg': "-- THE END -- " }
 
 
-if os.getenv('IS_LOCAL', False):
+if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
     with open('sns.json') as f:
         data = json.load(f)
         execute(data,None)
