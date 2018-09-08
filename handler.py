@@ -5,7 +5,8 @@ import logging
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-#libdir = os.path.join(os.getcwd(), 'lib', 'phyml')
+
+import subprocess
 
 
 def execute(event, context):
@@ -14,15 +15,26 @@ def execute(event, context):
     #    'result': "%s" % result.stdout
     # }
     #import subprocess
-    # command = ["./aws", "s3", "sync", "--acl", "public-read", "--delete",
-    #           source_dir + "/", "s3://" + to_bucket + "/"]
-    #print(subprocess.check_output(command, stderr=subprocess.STDOUT))
 
     logging.debug('Received Event: {}'.format(event))
 
     for record in event['Records']:
         sns = aws.SNSInterface(record)
         sns.download()
+
+        cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml')]
+        [cmdline_args.extend([k, v]) for k, v in sns.payload.items() if v != None]
+        cmdline_args.extend(k for k, v in sns.payload.items() if v == None)
+
+        with open( os.path.join(sns.tmp_folder, "trace.log"), "w") as file:
+            result = subprocess.run(cmdline_args,
+                                    stdout=file,
+                                    stderr=subprocess.STDOUT)
+
+        logging.warn(result)
+
+        logging.info(os.listdir(sns.tmp_folder))
+        logging.info(subprocess.run(["cat", os.path.join(sns.tmp_folder, "trace.log")], stdout=subprocess.PIPE))
 
     return 0
 
