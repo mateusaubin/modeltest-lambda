@@ -18,14 +18,15 @@ class SNSInterface:
         self.file_info = self.parse(sns_record)
         self.s3 = boto3.client('s3')
 
-    @staticmethod
-    def parse(record):
+    def parse(self, record):
         message = {'data': record['Sns']['Message'],
                    'run_id': record['Sns']['Subject']}
 
-        payload = json.loads(message['data'])
-        filedata = payload.pop('path').split('://')
-        logging.info("Received Payload: {}".format(payload))
+        phyml_params = json.loads(message['data'])
+        filedata = phyml_params.pop('path').split('://')
+
+        logging.info("Received Payload: {}".format(phyml_params))
+        self.payload = phyml_params
 
         return {'bucket': filedata[0], 'key': filedata[1]}
 
