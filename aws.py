@@ -12,17 +12,14 @@ class SNSInterface:
         if bool(os.getenv('IS_LOCAL', False)):
             shutil.rmtree(self.tmp_folder)
 
-    def __init__(self, sns_record, correlation_id):
-        logging.debug('Processing Record: {}'.format(sns_record))
+    def __init__(self, sns_message, correlation_id):
+        logging.debug('Processing Message: {}'.format(sns_message))
         self._correlation_id = correlation_id
-        self.file_info = self.parse(sns_record)
+        self.file_info = self.parse(sns_message)
         self.s3 = boto3.client('s3')
 
-    def parse(self, record):
-        message = {'data': record['Sns']['Message'],
-                   'run_id': record['Sns']['Subject']}
-
-        phyml_params = json.loads(message['data'])
+    def parse(self, sns_message):
+        phyml_params = json.loads(sns_message)
         filedata = phyml_params.pop('path').split('://')
 
         logging.info("Received Payload: {}".format(phyml_params))

@@ -20,7 +20,9 @@ def execute(event, context):
     logging.debug('Received Event: {}'.format(event))
 
     for record in event['Records']:
-        sns = aws.SNSInterface(record, context.aws_request_id)
+        sns = aws.SNSInterface(
+            record['Sns']['Message'], 
+            context.aws_request_id)
         sns.download()
 
         cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml')]
