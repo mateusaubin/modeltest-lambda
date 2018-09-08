@@ -41,3 +41,5 @@ class SNSInterface:
 
         self.s3.download_file(
             self.file_info['bucket'], self.file_info['key'], download_path)
+
+        self.payload["-i"] = download_path
