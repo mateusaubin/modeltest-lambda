@@ -4,17 +4,17 @@ import json
 import os
 from pathlib import Path
 import shutil
+import logging
 
 
 class SNSInterface:
 
     def __del__(self):
         if bool(os.getenv('IS_LOCAL', False)):
-            print('delete temp')
             shutil.rmtree(self.tmp_folder)
-        print("goodbye temp data")
 
     def __init__(self, sns_record):
+        logging.debug('Processing Record: {}'.format(sns_record))
         self.file_info = self.parse(sns_record)
         self.s3 = boto3.client('s3')
 
@@ -22,12 +22,12 @@ class SNSInterface:
     def parse(record):
         message = {'data': record['Sns']['Message'],
                    'run_id': record['Sns']['Subject']}
+
         payload = json.loads(message['data'])
         filedata = payload.pop('path').split('://')
-        finfo = {'bucket': filedata[0], 'key': filedata[1]}
+        logging.info("Received Payload: {}".format(payload))
 
-        print(payload)
-        return finfo
+        return {'bucket': filedata[0], 'key': filedata[1]}
 
     def download(self):
         tmp_guid = str(uuid.uuid4())
@@ -36,6 +36,7 @@ class SNSInterface:
         download_path = os.path.join(
             '/tmp', tmp_guid, Path(self.file_info['key']).name)
 
-        print(download_path)
+        logging.info("Downloading to: {}".format(download_path))
+
         self.s3.download_file(
             self.file_info['bucket'], self.file_info['key'], download_path)

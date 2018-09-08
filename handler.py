@@ -1,7 +1,10 @@
 import os
 import json
 import aws
+import logging
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 #libdir = os.path.join(os.getcwd(), 'lib', 'phyml')
 
 
@@ -14,20 +17,24 @@ def execute(event, context):
     # command = ["./aws", "s3", "sync", "--acl", "public-read", "--delete",
     #           source_dir + "/", "s3://" + to_bucket + "/"]
     #print(subprocess.check_output(command, stderr=subprocess.STDOUT))
+
+    logging.debug('Received Event: {}'.format(event))
+
     for record in event['Records']:
         sns = aws.SNSInterface(record)
         sns.download()
 
-
-#upload_path = '/tmp/resized-{}'.format(key)
-#s3_client.upload_file(upload_path, '{}resized'.format(bucket), key)
-
-        print('fez algum super processamento')
-
-    return {'msg': "-- THE END -- "}
+    return 0
 
 
 if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
+    # log setup
+    logging.basicConfig(level=logging.INFO,
+                        format="  %(levelname)-8s | %(message)s")
+
+    # feed event file
     with open('sns.json') as f:
         data = json.load(f)
+        logging.warning("Local Debugger Session")
         execute(data, None)
+        logging.warning("Execution Ended")
