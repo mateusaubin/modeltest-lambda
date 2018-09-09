@@ -11,26 +11,23 @@ import subprocess
 
 
 def execute(event, context):
-    #result = subprocess.run([libdir, "--help"], stdout=subprocess.PIPE)
-    # return {
-    #    'result': "%s" % result.stdout
-    # }
-    #import subprocess
-
     logging.debug('Received Event: {}'.format(event))
 
+    aws.correlation_id = context.aws_request_id
+
     for record in event['Records']:
-        sns = aws.SNSInterface(
-            record['Sns']['Message'], 
-            context.aws_request_id)
-        sns.download()
 
-        cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml')]
+        sns_result = aws.SNS(record['Sns']['Message'])
+        s3_result = aws.S3Download(sns_result.file_info)
+
+        cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml'), ]
+        cmdline_args.extend(['-i', s3_result.local_file])
         [cmdline_args.extend([k, v])
-         for k, v in sns.payload.items() if v != None]
-        cmdline_args.extend(k for k, v in sns.payload.items() if v == None)
+         for k, v in sns_result.payload.items() if v != None]
+        cmdline_args.extend(
+            k for k, v in sns_result.payload.items() if v == None)
 
-        with open(os.path.join(sns.tmp_folder, "trace.log"), "w") as file:
+        with open(os.path.join(s3_result.tmp_folder, "trace.log"), "w") as file:
             result = subprocess.run(cmdline_args,
                                     stdout=file,
                                     stderr=subprocess.STDOUT)
@@ -38,13 +35,20 @@ def execute(event, context):
         logging.warn(result)
 
         # bail out if phyml error'd
-        result.check_returncode()
+        if result.returncode != 0:
+            logging.info(
+                subprocess.run(["cat", os.path.join(s3_result.tmp_folder, "trace.log")],
+                               stdout=subprocess.PIPE)
+            )
+            raise subprocess.SubprocessError("Error calling PhyML")
         # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
 
         # debug por enquanto
-        logging.info(os.listdir(sns.tmp_folder))
-        logging.info(subprocess.run(["cat", os.path.join(
-            sns.tmp_folder, "trace.log")], stdout=subprocess.PIPE))
+        logging.info(os.listdir(s3_result.tmp_folder))
+        logging.info(
+            subprocess.run(["cat", os.path.join(s3_result.tmp_folder, "trace.log")],
+                           stdout=subprocess.PIPE)
+        )
 
     return 0
 
