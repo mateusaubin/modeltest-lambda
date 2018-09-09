@@ -39,6 +39,7 @@ package:
 functions:
   modeltest:
     memorySize: 128
+    timeout: 30
     handler: handler.execute
     events:
       - sns: ${self:custom.inputqueue}

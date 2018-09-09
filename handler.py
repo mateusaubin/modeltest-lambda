@@ -27,28 +27,27 @@ def execute(event, context):
         cmdline_args.extend(
             k for k, v in sns_result.payload.items() if v == None)
 
-        with open(os.path.join(s3_result.tmp_folder, "trace.log"), "w") as file:
+        trace_file = os.path.join(
+            s3_result.tmp_folder,
+            "trace_{}.log".format(sns_result.payload["--run_id"])
+        )
+
+        with open(trace_file, "w") as file:
             result = subprocess.run(cmdline_args,
                                     stdout=file,
                                     stderr=subprocess.STDOUT)
 
         logging.warn(result)
-
-        # bail out if phyml error'd
-        if result.returncode != 0:
-            logging.info(
-                subprocess.run(["cat", os.path.join(s3_result.tmp_folder, "trace.log")],
-                               stdout=subprocess.PIPE)
-            )
-            raise subprocess.SubprocessError("Error calling PhyML")
-        # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
-
         # debug por enquanto
         logging.info(os.listdir(s3_result.tmp_folder))
-        logging.info(
-            subprocess.run(["cat", os.path.join(s3_result.tmp_folder, "trace.log")],
-                           stdout=subprocess.PIPE)
-        )
+
+        # bail out if phyml error'd
+        # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
+        if result.returncode != 0:
+            logging.info(
+                subprocess.run(["cat", trace_file], stdout=subprocess.PIPE)
+            )
+            raise subprocess.SubprocessError("Error calling PhyML")
 
     return 0
 

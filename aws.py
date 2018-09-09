@@ -26,17 +26,16 @@ class SNS:
 
 class S3Download:
 
-    def __del__(self):
-        if bool(os.getenv('IS_LOCAL', False)):
-            shutil.rmtree(self.tmp_folder)
-
     def __init__(self, finfo):
+        self.__file_info = finfo
         self.__parse_paths(finfo)
 
-        logging.info("Downloading to: {}".format(self.local_file))
-
-        self.s3 = boto3.client('s3')
-        self.__download(finfo)
+        if os.path.exists(self.local_file):
+            logging.debug("File already exists {}".format(self.local_file))
+        else:
+            logging.info("Downloading to: {}".format(self.local_file))
+            self.s3 = boto3.client('s3')
+            self.__download(self.__file_info)
 
     def __parse_paths(self, finfo):
         self.tmp_folder = os.path.join('/tmp', correlation_id)
