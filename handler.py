@@ -44,9 +44,13 @@ def execute(event, context):
         # bail out if phyml error'd
         # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
         if result.returncode != 0:
-            logging.info(
-                subprocess.run(["cat", trace_file], stdout=subprocess.PIPE)
+
+            processData = subprocess.run(
+                ["cat", trace_file], 
+                stdout=subprocess.PIPE
             )
+            logging.info(processData.stdout.decode('UTF-8'))
+            
             raise subprocess.SubprocessError("Error calling PhyML")
 
     return 0
