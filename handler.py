@@ -17,6 +17,8 @@ def execute(event, context):
 
     for record in event['Records']:
 
+        logging.warning("Subject: {}".format(record['Sns']['Subject']))
+        
         sns_result = aws.SNS(record['Sns']['Message'])
         s3_result = aws.S3Download(sns_result.file_info)
 
