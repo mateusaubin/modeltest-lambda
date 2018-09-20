@@ -5,7 +5,7 @@ import logging
 import uuid
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 import subprocess
 
@@ -36,9 +36,10 @@ def execute(event, context):
                                     stdout=file,
                                     stderr=subprocess.STDOUT)
 
-        logging.warn(result)
+        logging.warn("PhyML.ReturnCode={}".format(result.returncode))
+        resultfiles = [x for x in os.listdir(s3_result.tmp_folder) if x != "_input"]
         # debug por enquanto
-        logging.info(os.listdir(s3_result.tmp_folder))
+        logging.info(resultfiles)
 
         # bail out if phyml error'd
         # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
@@ -48,7 +49,7 @@ def execute(event, context):
                 ["cat", trace_file], 
                 stdout=subprocess.PIPE
             )
-            logging.info(processData.stdout.decode('UTF-8'))
+            logging.error(processData.stdout.decode('UTF-8'))
             
             raise subprocess.SubprocessError("Error calling PhyML")
 
