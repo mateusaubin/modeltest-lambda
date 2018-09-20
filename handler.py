@@ -22,14 +22,11 @@ def execute(event, context):
 
         cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml'), ]
         cmdline_args.extend(['-i', s3_result.local_file])
-        [cmdline_args.extend([k, v])
-         for k, v in sns_result.payload.items() if v != None]
-        cmdline_args.extend(
-            k for k, v in sns_result.payload.items() if v == None)
+        cmdline_args.extend(sns_result.payload.split())
 
         trace_file = os.path.join(
             s3_result.tmp_folder,
-            "trace_{}.log".format(sns_result.payload["--run_id"])
+            "trace_{}.log".format(sns_result.jmodel_runid)
         )
 
         with open(trace_file, "w") as file:

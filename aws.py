@@ -19,7 +19,8 @@ class SNS:
         filedata = phyml_params.pop('path').split('://')
 
         logging.info("Received Payload: {}".format(phyml_params))
-        self.payload = phyml_params
+        self.payload = phyml_params['cmd']
+        self.jmodel_runid = self.payload.split('--run_id ')[1].split()[0]
 
         return {'bucket': filedata[0], 'key': filedata[1]}
 
