@@ -44,6 +44,7 @@ class S3Download:
             '/tmp', correlation_id, "_input")
 
     def __download(self, file_info):
-        os.mkdir(self.tmp_folder)
+        os.makedirs(self.tmp_folder, exist_ok=True)
+        logging.info(file_info)
         self.s3.download_file(
             file_info['bucket'], file_info['key'], self.local_file)
