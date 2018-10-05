@@ -6,11 +6,16 @@ service: mestrado # NOTE: update this with your service name
 
 plugins:
   - serverless-pseudo-parameters
+  - serverless-s3-remover
 
 custom:
   dlqtopic: "${self:service}-${opt:stage, self:provider.stage}-failed"
   inputtopic: "${self:service}-${opt:stage, self:provider.stage}-input"
   sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml"
+  remover:
+    buckets:
+      - ${self:custom.sourceBucket}
+
 
 provider:
   name: aws
@@ -24,10 +29,6 @@ provider:
         - s3:PutObject
         - s3:GetObject
       Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
-    - Effect: Allow
-      Action:
-        - sns:*
-      Resource: "*"
     - Effect: Allow
       Action:
         - batch:SubmitJob
@@ -64,3 +65,4 @@ functions:
       include:
         - forwarder.py
 
+        

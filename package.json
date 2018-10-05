@@ -1,0 +1,10 @@
+{
+  "name": "mestrado",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {},
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^2.2.0",
+    "serverless-s3-remover": "^0.6.0"
+  }
+}
