@@ -7,21 +7,17 @@ service: mestrado # NOTE: update this with your service name
 plugins:
   - serverless-pseudo-parameters
 
-# PARAMS
 custom:
-  dlq: "${self:service}-${self:provider.stage}-failed"
-  inputqueue: "${self:service}-${self:provider.stage}-inputqueue"
-  sourceBucket: "${self:service}-${self:provider.stage}-phyml-input"
+  dlq: "${self:service}-${opt:stage, self:provider.stage}-failed"
+  inputqueue: "${self:service}-${opt:stage, self:provider.stage}-inputqueue"
+  sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml-input"
 
 provider:
   name: aws
+#  stage: dev
   region: us-east-2
   runtime: python3.6
 
-# you can overwrite defaults here
-#  stage: dev
-
-# you can add statements to the Lambda function's IAM Role here
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -61,17 +57,4 @@ functions:
     handler: forwarder.execute
     events:
       - sns: ${self:custom.dlq}
-
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    phyml:
-#      Type: AWS::S3::Bucket
-#      Properties: 
-#        BucketName: "${self:service}-${self:provider.stage}-phyml-input"
-#  Outputs:
-#     phymlBucket:
-#       Description: "S3 bucket for phyml input data"
-#       Value: { Fn::GetAtt : [ phyml, Arn ] }
 
