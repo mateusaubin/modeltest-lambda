@@ -66,3 +66,114 @@ functions:
         - forwarder.py
 
         
+
+resources:  # CloudFormation template syntax
+  Resources:
+    InputBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "${self:custom.sourceBucket}"
+    BatchServiceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: batch.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+    IamInstanceProfile:
+      Type: AWS::IAM::InstanceProfile
+      Properties:
+        Roles:
+        - Ref: EcsInstanceRole
+    EcsInstanceRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2008-10-17'
+          Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role
+    SpotIamFleetRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: spotfleet.amazonaws.com
+            Action: sts:AssumeRole
+        ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetRole
+    TestApplicationJob:
+      Type: AWS::Batch::JobDefinition
+      Properties:
+        Type: container
+        ContainerProperties:
+          Image:
+            Fn::Join:
+            - ''
+            - - 137112412989.dkr.ecr.
+              - Ref: AWS::Region
+              - ".amazonaws.com/amazonlinux:latest"
+          Vcpus: 2
+          Memory: 2000
+          Command:
+          - echo
+          - Hello World, I am a low priority job
+        RetryStrategy:
+          Attempts: 1
+    LowPriorityJobQueue:
+      Type: AWS::Batch::JobQueue
+      Properties:
+        JobQueueName: LowPriorityBatchCloudformationJobqueue
+        Priority: 2
+        ComputeEnvironmentOrder:
+        - Order: 1
+          ComputeEnvironment:
+            Ref: SpotComputeEnvironment
+    SpotComputeEnvironment:
+      Type: AWS::Batch::ComputeEnvironment
+      Properties:
+        Type: MANAGED
+        ComputeResources:
+          Type: SPOT
+          MinvCpus: 0
+          DesiredvCpus: 0
+          MaxvCpus: 64
+          InstanceTypes:
+            - optimal
+          Subnets:
+            - subnet-63c53f2f
+            - subnet-05bc996d
+            - subnet-292fbc53
+          SecurityGroupIds:
+            - sg-79aa1014
+          InstanceRole:
+            Ref: IamInstanceProfile
+          BidPercentage: 40
+          SpotIamFleetRole:
+            Ref: SpotIamFleetRole
+        ServiceRole:
+          Ref: BatchServiceRole
+
+
+  # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
+  #Outputs:
+  #  InputBucketArn:
+  #    Description: The ARN for the User's Table
+  #    Value:
+  #      "Fn::GetAtt": [ InputBucket, Arn ]
+  #    Export:
+  #      Name: ${self:service}:${opt:stage, self:provider.stage}:InputBucketArn
