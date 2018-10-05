@@ -8,9 +8,9 @@ plugins:
   - serverless-pseudo-parameters
 
 custom:
-  dlq: "${self:service}-${opt:stage, self:provider.stage}-failed"
-  inputqueue: "${self:service}-${opt:stage, self:provider.stage}-inputqueue"
-  sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml-input"
+  dlqtopic: "${self:service}-${opt:stage, self:provider.stage}-failed"
+  inputtopic: "${self:service}-${opt:stage, self:provider.stage}-input"
+  sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml"
 
 provider:
   name: aws
@@ -34,12 +34,9 @@ provider:
       Resource: "arn:aws:batch:#{AWS::Region}:#{AWS::AccountId}:*"
 
 package:
+  individually: true
   exclude:
-    - .vscode/**
-    - .git/**
-    - node_modules/**
-    - "*.md"
-    - "*.json"
+    - "*/**"
 
 functions:
 
@@ -47,14 +44,23 @@ functions:
     memorySize: 128
     timeout: 30
     handler: handler.execute
-    onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlq}"
+    onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
     events:
-      - sns: ${self:custom.inputqueue}
+      - sns: ${self:custom.inputtopic}
+    package:
+      include:
+        - "lib/phyml"
+        - aws.py
+        - handler.py
 
   dlq-forwarder:
     memorySize: 128
     timeout: 5
     handler: forwarder.execute
     events:
-      - sns: ${self:custom.dlq}
+      - sns: ${self:custom.dlqtopic}
+    package:
+      # We're including this file so it will be in the final package of this function only
+      include:
+        - forwarder.py
 
