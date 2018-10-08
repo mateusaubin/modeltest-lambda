@@ -19,7 +19,7 @@ def execute(event, context):
 
         logging.warning("Subject: {}".format(record['Sns']['Subject']))
         
-        sns_result = aws.SNS(record['Sns']['Message'])
+        sns_result = aws.SNS(record['Sns'])
         s3_result = aws.S3Download(sns_result.file_info)
 
         cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml'), ]
@@ -28,7 +28,7 @@ def execute(event, context):
 
         trace_file = os.path.join(
             s3_result.tmp_folder,
-            "trace_{}.log".format(sns_result.jmodel_runid)
+            "_input_phyml_trace_{}.log".format(sns_result.jmodel_modelname)
         )
 
         with open(trace_file, "w") as file:
@@ -38,8 +38,11 @@ def execute(event, context):
 
         logging.warn("PhyML.ReturnCode={}".format(result.returncode))
         resultfiles = [x for x in os.listdir(s3_result.tmp_folder) if x != "_input"]
+
+        whatevs = aws.S3Upload(resultfiles, sns_result)
+        #''.join(reversed(tmp.split(',')))
         # debug por enquanto
-        logging.info(resultfiles)
+        logging.warn(resultfiles)
 
         # bail out if phyml error'd
         # TODO: assert a existência dos 3 arquivos [ {filenamewithext}_phyml_stats_{run_id}, {filenamewithext}_phyml_tree_{run_id}, trace.log ]
