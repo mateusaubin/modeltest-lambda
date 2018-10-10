@@ -67,7 +67,7 @@ class Context(object):
 if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
     # log setup
     logging.basicConfig(level=logging.INFO,
-                        format="  %(levelname)-8s | %(message)s")
+                        format="%(levelname)-8s | %(message)s")
 
     # context mock
     context = Context()

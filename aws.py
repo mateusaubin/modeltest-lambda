@@ -54,6 +54,7 @@ class S3Download:
         s3_client.download_file(
             file_info['bucket'], file_info['key'], self.local_file)
 
+
 class S3Upload:
     
     def __init__(self, tmp_folder, files, sns_result):
@@ -61,13 +62,14 @@ class S3Upload:
         self.src_bucket = sns_result.file_info['bucket']
         self.jmodel_modelname = sns_result.jmodel_modelname
         self.jmodel_runid = sns_result.jmodel_runid
-        self.files = {x : self.FixPhymlTraceFilenames(x) for x in files}
+        self.files = {x : self.__FixPhymlTraceFilenames(x) for x in files}
         self.__upload()
         pass
     
     def __upload(self):
 
         for phyml_original_filename, fixed_filename in self.files.items():
+
             src_file = os.path.join(self.tmp_folder, phyml_original_filename)
             dst_file = "/".join([self.jmodel_runid, fixed_filename])
 
@@ -81,8 +83,7 @@ class S3Upload:
                 }
             )
 
-
-    def FixPhymlTraceFilenames(self, filename):
+    def __FixPhymlTraceFilenames(self, filename):
 
         remove_redundant = filename.replace("_input_phyml_","")
         remove_extension = remove_redundant[:-4]
@@ -90,4 +91,6 @@ class S3Upload:
         assert(self.jmodel_modelname in remove_extension)
         
         reverse = reversed(remove_extension.split("_"))
-        return ("_".join(reverse)) + ".txt"
+        result = ("_".join(reverse)) + ".txt"
+        
+        return result
