@@ -59,20 +59,24 @@ def execute(event, context):
     return 0
 
 
+class Context(object):
+    def __init__(self):
+        self.aws_request_id = str(uuid.uuid4())
+        
+
 if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
     # log setup
     logging.basicConfig(level=logging.INFO,
                         format="  %(levelname)-8s | %(message)s")
 
     # context mock
-    class Context(object):
-        def __init__(self):
-            self.aws_request_id = str(uuid.uuid4())
+    context = Context()
 
     # feed event file
     with open(os.getenv('DEBUG_FILE')) as f:
-        data = json.load(f)
+        contents = f.read().replace('{{message-subject}}', context.aws_request_id)
+        data = json.loads(contents)
 
     logging.warning("Local Debugger Session")
-    execute(data, Context())
+    execute(data, context)
     logging.warning("Execution Ended")
