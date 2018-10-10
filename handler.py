@@ -39,7 +39,7 @@ def execute(event, context):
         logging.warn("PhyML.ReturnCode={}".format(result.returncode))
         resultfiles = [x for x in os.listdir(s3_result.tmp_folder) if x != "_input"]
 
-        whatevs = aws.S3Upload(resultfiles, sns_result)
+        whatevs = aws.S3Upload(s3_result.tmp_folder, resultfiles, sns_result)
         #''.join(reversed(tmp.split(',')))
         # debug por enquanto
         logging.warn(resultfiles)

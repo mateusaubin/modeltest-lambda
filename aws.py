@@ -56,27 +56,38 @@ class S3Download:
 
 class S3Upload:
     
-    def __init__(self, files, sns_result):
+    def __init__(self, tmp_folder, files, sns_result):
+        self.tmp_folder = tmp_folder
         self.src_bucket = sns_result.file_info['bucket']
         self.jmodel_modelname = sns_result.jmodel_modelname
         self.jmodel_runid = sns_result.jmodel_runid
-        self.files = [{x : self.FixPhymlTraceFilenames(x)} for x in files]
+        self.files = {x : self.FixPhymlTraceFilenames(x) for x in files}
+        self.__upload()
         pass
     
-    def Upload(self):
-        # add ´correlation_id´ to s3file tags
-        for resultfile, mappedname in self.files:
-            s3_client.upload_file(resultfile, self.src_bucket, mappedname)
-            pass
-        pass
+    def __upload(self):
+
+        for phyml_original_filename, fixed_filename in self.files.items():
+            src_file = os.path.join(self.tmp_folder, phyml_original_filename)
+            dst_file = "/".join([self.jmodel_runid, fixed_filename])
+
+            s3_client.upload_file(
+                src_file,
+                self.src_bucket,
+                dst_file,
+                ExtraArgs={
+                    'ContentType': 'text/plain',
+                    'ContentDisposition': phyml_original_filename
+                }
+            )
+
 
     def FixPhymlTraceFilenames(self, filename):
-        #"_".join(reversed((filename.replace("_input_phyml_","")[:-4]).split("_")))
+
         remove_redundant = filename.replace("_input_phyml_","")
         remove_extension = remove_redundant[:-4]
 
-        for sanitized_filename in remove_extension:
-            assert(self.jmodel_modelname in sanitized_filename)
+        assert(self.jmodel_modelname in remove_extension)
         
         reverse = reversed(remove_extension.split("_"))
-        return "_".join(reverse)
+        return ("_".join(reverse)) + ".txt"
