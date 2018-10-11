@@ -38,7 +38,7 @@ class S3Download:
         self.__parse_paths(finfo)
 
         if os.path.exists(self.local_file):
-            logging.debug("File already exists {}".format(self.local_file))
+            logging.warn("File already exists {}".format(self.local_file))
         else:
             logging.info("Downloading to: {}".format(self.local_file))
             self.__download(self.__file_info)
@@ -57,16 +57,30 @@ class S3Download:
 
 class S3Upload:
     
+    NEEDED_FILES = ['trace','tree','stats']
+
+
     def __init__(self, tmp_folder, files, sns_result):
+
+        # sanity check
+        for string in files:
+            assert(any(substring in string for substring in self.NEEDED_FILES))
+
+        # save needed information
         self.tmp_folder = tmp_folder
         self.src_bucket = sns_result.file_info['bucket']
         self.jmodel_modelname = sns_result.jmodel_modelname
         self.jmodel_runid = sns_result.jmodel_runid
+
+        # parse/fix filenames
         self.files = {x : self.__FixPhymlTraceFilenames(x) for x in files}
-        self.__upload()
-        pass
+
+        # send to s3
+        self.uploaded_files = self.__upload()
     
     def __upload(self):
+
+        uploaded = []
 
         for phyml_original_filename, fixed_filename in self.files.items():
 
@@ -83,11 +97,16 @@ class S3Upload:
                 }
             )
 
+            uploaded.append(dst_file)
+        
+        return uploaded
+
     def __FixPhymlTraceFilenames(self, filename):
 
         remove_redundant = filename.replace("_input_phyml_","")
         remove_extension = remove_redundant[:-4]
 
+        # make sure to keep Model identifier
         assert(self.jmodel_modelname in remove_extension)
         
         reverse = reversed(remove_extension.split("_"))
