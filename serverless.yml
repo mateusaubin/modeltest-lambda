@@ -44,7 +44,7 @@ functions:
 
   modeltest:
     memorySize: "${self:custom.memoryAllocation}"
-    timeout: 30
+    timeout: 900
     handler: handler.execute
     onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
     events:
