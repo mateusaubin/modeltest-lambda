@@ -15,6 +15,8 @@ s3_client = boto3.client('s3')
 class SNS:
 
     def __init__(self, sns_message):
+        assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
+
         logging.debug('Processing Message: {}'.format(json.dumps(sns_message['Message'])))
         self.file_info = self.__parse(sns_message)
 
@@ -35,24 +37,27 @@ class S3Download:
 
     def __init__(self, finfo):
         self.__file_info = finfo
-        self.__parse_paths(finfo)
+        self.__generate_temp_paths()
 
         if os.path.exists(self.local_file):
             logging.warn("File already exists {}".format(self.local_file))
         else:
             logging.info("Downloading to: {}".format(self.local_file))
-            self.__download(self.__file_info)
+            self.__download()
 
-    def __parse_paths(self, finfo):
+    def __generate_temp_paths(self):
         self.tmp_folder = os.path.join('/tmp', correlation_id)
         self.local_file = os.path.join(
             '/tmp', correlation_id, "_input")
 
-    def __download(self, file_info):
+    def __download(self):
         os.makedirs(self.tmp_folder, exist_ok=True)
-        logging.info(file_info)
+        logging.info(self.__file_info)
         s3_client.download_file(
-            file_info['bucket'], file_info['key'], self.local_file)
+            self.__file_info['bucket'], 
+            self.__file_info['key'], 
+            self.local_file
+        )
 
 
 class S3Upload:
@@ -64,12 +69,12 @@ class S3Upload:
 
         # sanity check
         for string in files:
-            assert(any(substring in string for substring in self.NEEDED_FILES))
+            assert any(substring in string for substring in self.NEEDED_FILES), "Missing expected output files from Phyml"
 
         # save needed information
-        self.tmp_folder = tmp_folder
-        self.src_bucket = sns_result.file_info['bucket']
-        self.jmodel_modelname = sns_result.jmodel_modelname
+        self.__tmp_folder = tmp_folder
+        self.__src_bucket = sns_result.file_info['bucket']
+        self.__jmodel_modelname = sns_result.jmodel_modelname
         self.jmodel_runid = sns_result.jmodel_runid
 
         # parse/fix filenames
@@ -84,12 +89,12 @@ class S3Upload:
 
         for phyml_original_filename, fixed_filename in self.files.items():
 
-            src_file = os.path.join(self.tmp_folder, phyml_original_filename)
+            src_file = os.path.join(self.__tmp_folder, phyml_original_filename)
             dst_file = "/".join([self.jmodel_runid, fixed_filename])
 
             s3_client.upload_file(
                 src_file,
-                self.src_bucket,
+                self.__src_bucket,
                 dst_file,
                 ExtraArgs={
                     'ContentType': 'text/plain',
@@ -107,7 +112,7 @@ class S3Upload:
         remove_extension = remove_redundant[:-4]
 
         # make sure to keep Model identifier
-        assert(self.jmodel_modelname in remove_extension)
+        assert self.__jmodel_modelname in remove_extension, "Fixed filename lost Model name"
         
         reverse = reversed(remove_extension.split("_"))
         result = ("_".join(reverse)) + ".txt"

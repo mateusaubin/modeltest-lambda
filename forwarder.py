@@ -30,14 +30,14 @@ def process_failed_record(record):
 
     logging.debug("Job ID is {}.".format(response['jobId']))
 
-    assert(response['ResponseMetadata']['HTTPStatusCode'] == 200)
+    assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
 
     return response['jobId']
 
 def process_sns_record(record):
 
-    assert("mestrado-dev-failed" in record['TopicArn'])
-    assert("Task timed out" in record['MessageAttributes']['ErrorMessage']['Value'])
+    assert "mestrado-dev-failed" in record['TopicArn'], "Message came from unknown topic: {}".format(record['TopicArn'])
+    assert "Task timed out" in record['MessageAttributes']['ErrorMessage']['Value'], "Expected timeout, got '{}'".format(record['MessageAttributes']['ErrorMessage']['Value'])
 
     event_msg = json.loads(record['Message'])
     results = []
