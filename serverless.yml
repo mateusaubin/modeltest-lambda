@@ -12,7 +12,7 @@ custom:
   dlqtopic: "${self:service}-${opt:stage, self:provider.stage}-failed"
   inputtopic: "${self:service}-${opt:stage, self:provider.stage}-input"
   sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml"
-  memoryAllocation: "512"
+  memoryAllocation: "256"
   remover:
     buckets:
       - ${self:custom.sourceBucket}
@@ -82,6 +82,18 @@ resources:  # CloudFormation template syntax
             Action: sts:AssumeRole
         ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole
+    ECSTaskRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service: "ecs-tasks.amazonaws.com"
+            Action: "sts:AssumeRole"
+        ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
     IamInstanceProfile:
       Type: AWS::IAM::InstanceProfile
       Properties:
@@ -123,21 +135,26 @@ resources:  # CloudFormation template syntax
       Properties:
         Type: container
         Parameters:
-          phyfilepath : small
-          commandlineargs : "-d nt -n 1 -b 0 --run_id GTR+I+G -m 012345 -f m -v e -c 4 -a e --no_memory_check --r_seed 12345 -o tlr -s BEST"
-          country: botswana
+          #phyfilepath : small
+          path: "bucket://path/to/file.phy"
+          cmd : "PhyML commandline args"
+          jmodeltestrunid: "jModelTest run id"
         RetryStrategy:
           Attempts: 2
         ContainerProperties:
-          Image: mateusaubin/modeltest-batch
+          Image: mateusaubin/modeltest-lambda
           Vcpus: 1
           Memory: ${self:custom.memoryAllocation}
           Command:
-          - Ref::phyfilepath
-          - Ref::commandlineargs
+          - Ref::path
+          - Ref::cmd
+          - Ref::jmodeltestrunid
+          JobRoleArn: 
+            Ref: ECSTaskRole
           Environment:
-            - Name: ENV_BUCKET
-              Value: "${self:custom.sourceBucket}"
+              # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration
+            - Name: AWS_DEFAULT_REGION
+              Value: "${self:provider.region}"
     BatchJobQueue:
       Type: AWS::Batch::JobQueue
       Properties:
@@ -155,16 +172,16 @@ resources:  # CloudFormation template syntax
           Ref: BatchServiceRole
         ComputeResources:
           Type: SPOT
-          BidPercentage: 40
+          BidPercentage: 30
           ImageId: ami-09a64272e7fe706b6 #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
           MinvCpus: 0
           DesiredvCpus: 0
-          MaxvCpus: 4
+          MaxvCpus: 2
           InstanceTypes:
             - c4
             - c5
           Tags:
-            Name: batch-spot-instace
+            Name: ${self:service}-${opt:stage, self:provider.stage}-batch-spot
           Subnets:
             - subnet-63c53f2f
             - subnet-05bc996d
@@ -177,11 +194,11 @@ resources:  # CloudFormation template syntax
             Ref: SpotIamFleetRole
 
 
-  # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
+# The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
   Outputs:
     InputBucketArn:
       Description: Bucket which will receive the .phy files
       Value:
         "Fn::GetAtt": [ InputBucket, Arn ]
-      Export:
-        Name: ${self:service}:${opt:stage, self:provider.stage}:InputBucketArn
+#      Export:
+#        Name: ${self:service}:${opt:stage, self:provider.stage}:InputBucketArn
