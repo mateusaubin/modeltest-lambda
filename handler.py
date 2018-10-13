@@ -61,27 +61,29 @@ def execute(event, context):
     return 0
 
 
+# ------- CUT HERE -------
+
 class Context(object):
     def __init__(self):
         self.aws_request_id = str(uuid.uuid4())
         
+if __name__ == '__main__':
+    if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
+        # log setup
+        logging.basicConfig(level=logging.INFO,
+                            format="%(levelname)-8s | %(message)s")
 
-if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
-    # log setup
-    logging.basicConfig(level=logging.INFO,
-                        format="%(levelname)-8s | %(message)s")
+        # context mock
+        context = Context()
 
-    # context mock
-    context = Context()
+        # feed event file
+        with open(os.getenv('DEBUG_FILE')) as f:
+            contents = f.read().replace('{{message-subject}}', context.aws_request_id)
+            data = json.loads(contents)
 
-    # feed event file
-    with open(os.getenv('DEBUG_FILE')) as f:
-        contents = f.read().replace('{{message-subject}}', context.aws_request_id)
-        data = json.loads(contents)
+        logging.warning("Local Debugger Session")
+        execute(data, context)
+        logging.warning("Execution Ended")
 
-    logging.warning("Local Debugger Session")
-    execute(data, context)
-    logging.warning("Execution Ended")
-
-    import shutil
-    shutil.rmtree('/tmp/'+context.aws_request_id)
+        import shutil
+        shutil.rmtree('/tmp/'+context.aws_request_id)
