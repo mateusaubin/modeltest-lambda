@@ -66,6 +66,7 @@ functions:
         Ref: BatchJobDef
       BATCH_JOBQUEUE:
         Ref: BatchJobQueue
+      MODELTEST_DLQTOPIC: ${self:custom.dlqtopic}
     package:
       # We're including this file so it will be in the final package of this function only
       include:

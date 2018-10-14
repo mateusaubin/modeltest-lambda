@@ -46,7 +46,9 @@ def process_failed_record(record):
 
 def process_sns_record(record):
 
-    assert "mestrado-dev-failed" in record['TopicArn'], "Message came from unknown topic: {}".format(record['TopicArn'])
+    sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
+
+    assert sourcetopic in record['TopicArn'], "Message came from unknown topic: {}".format(record['TopicArn'])
     assert "Task timed out" in record['MessageAttributes']['ErrorMessage']['Value'], "Expected timeout, got '{}'".format(record['MessageAttributes']['ErrorMessage']['Value'])
 
     event_msg = json.loads(record['Message'])
