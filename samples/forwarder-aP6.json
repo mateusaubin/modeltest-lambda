@@ -1,0 +1,35 @@
+{
+    "Records": [
+        {
+            "EventSource": "aws:sns",
+            "EventVersion": "1.0",
+            "EventSubscriptionArn": "arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed:59c02a8a-1194-4927-b34b-c586cf567b41",
+            "Sns": {
+                "Type": "Notification",
+                "MessageId": "07a7dc26-4642-54ae-9585-881ad1ad503e",
+                "TopicArn": "arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed",
+                "Subject": null,
+                "Message": "{\"Records\":[{\"EventVersion\":\"1.0\",\"EventSubscriptionArn\":\"arn:aws:sns:EXAMPLE\",\"EventSource\":\"aws:sns\",\"Sns\":{\"Message\":\"{\\\"path\\\": \\\"mestrado-dev-phyml://#_src/aP6.phy\\\", \\\"cmd\\\": \\\"-d nt -n 1 -b 0 --run_id GTR+I+G -m 012345 -f m -v e -c 4 -a e --no_memory_check --r_seed 12345 -o tlr -s BEST\\\"}\",\"Subject\":\"VMware-aP6\",\"SignatureVersion\":\"1\",\"Timestamp\":\"1970-01-01T00:00:00.000Z\",\"Signature\":\"EXAMPLE\",\"SigningCertUrl\":\"EXAMPLE\",\"MessageId\":\"95df01b4-ee98-5cb9-9903-4c221d41eb5e\",\"MessageAttributes\":{},\"Type\":\"Notification\",\"UnsubscribeUrl\":\"EXAMPLE\",\"TopicArn\":\"arn:aws:sns:EXAMPLE\"}}]}",
+                "Timestamp": "2018-10-14T01:02:39.072Z",
+                "SignatureVersion": "1",
+                "Signature": "LuSURG4+qioTZnqOPazl5CpNz2S5Iuhje4L4qimB1rFHcXevgKI8xpkhLusJUt3ZYu2qcNRfbPnvjSyoreGmLBm9p3EAapxcBZBFL/uAK+DaVUVwrdC3losxg5Im4WTv9uiJ0zEVR3flGXGMaWG97+n0rkjrPXr/SaSDTIoCzGlIehhu0cnOwNsQzjMflWJbkZzc2X8xE9oBWsBEreKmaBNRQ9/ZLmnNgFcJrAFn/4vobF76k9wH39CSMo0Ix9GZRLLRq+ys/JDl6xUNPgN0F1b3oOUnQVuFcHIcLy4M3Zqn4bqp1TD+0twa74MJQ9/vOWogU07UL0KLS4GEHkvfuQ==",
+                "SigningCertUrl": "https://sns.us-east-2.amazonaws.com/SimpleNotificationService-ac565b8b1a6c5d002d285f9598aa1d9b.pem",
+                "UnsubscribeUrl": "https://sns.us-east-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed:59c02a8a-1194-4927-b34b-c586cf567b41",
+                "MessageAttributes": {
+                    "RequestID": {
+                        "Type": "String",
+                        "Value": "6738582d-cf4c-11e8-b1a0-d773a52679c7"
+                    },
+                    "ErrorCode": {
+                        "Type": "String",
+                        "Value": "200"
+                    },
+                    "ErrorMessage": {
+                        "Type": "String",
+                        "Value": "2018-10-14T01:02:38.880Z 6738582d-cf4c-11e8-b1a0-d773a52679c7 Task timed out after 1.00 seconds"
+                    }
+                }
+            }
+        }
+    ]
+}
