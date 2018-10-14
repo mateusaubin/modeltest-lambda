@@ -27,8 +27,8 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - s3:PutObject
-        - s3:GetObject
+        - s3:Put*
+        - s3:Get*
       Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
     - Effect: Allow
       Action:
@@ -99,7 +99,20 @@ resources:  # CloudFormation template syntax
             Action: "sts:AssumeRole"
         ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-        # TODO: add s3 download and upload
+    ECSTaskPolicy:
+      Type: AWS::IAM::Policy
+      Properties: 
+        PolicyName: "s3-access"
+        PolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - Effect: "Allow"
+              Action: 
+                - "s3:GetObject*"
+                - "s3:PutObject*"
+              Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
+        Roles: 
+          - Ref: "ECSTaskRole"
     IamInstanceProfile:
       Type: AWS::IAM::InstanceProfile
       Properties:
