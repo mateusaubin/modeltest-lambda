@@ -7,13 +7,11 @@ logger.setLevel(logging.INFO)
 
 aws_batch_cli = boto3.client('batch')
 
-def process_failed_record(record):
-
-    # jmodel_runid = Subject
-    # json {cmd, path} = Message
+def process_failed_record(record, source_requestid):
 
     payload = json.loads(record['Message'])
     payload['jmodeltestrunid'] = record['Subject']
+    payload['sourcerequestid'] = source_requestid
     logging.info(json.dumps(payload))
 
     jobdef = os.getenv('BATCH_JOBDEF')
@@ -43,20 +41,26 @@ def process_failed_record(record):
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
 
     return response['jobId']
-
+    
 def process_sns_record(record):
 
     sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
 
-    assert sourcetopic in record['TopicArn'], "Message came from unknown topic: {}".format(record['TopicArn'])
-    assert "Task timed out" in record['MessageAttributes']['ErrorMessage']['Value'], "Expected timeout, got '{}'".format(record['MessageAttributes']['ErrorMessage']['Value'])
+    topic_arn = record['TopicArn']
+    error_message = record['MessageAttributes']['ErrorMessage']['Value']
+    source_requestid = record['MessageAttributes']['RequestID']['Value']
+
+    logging.info("Lambda RequestId: {}".format(source_requestid))
+
+    assert sourcetopic in topic_arn, "Message came from unknown topic: {}".format(topic_arn)
+    assert "Task timed out" in error_message, "Expected timeout, got '{}'".format(error_message)
 
     event_msg = json.loads(record['Message'])
     results = []
 
     for failed in event_msg['Records']:
 
-        submitted_job = process_failed_record(failed['Sns'])
+        submitted_job = process_failed_record(failed['Sns'], source_requestid)
         
         results.append(submitted_job)
 

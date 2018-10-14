@@ -14,7 +14,7 @@ COPY aws.py handler.py dockerentrypoint.py ./
 
 # execution
 ENTRYPOINT [ "python3", "dockerentrypoint.py" ]
-CMD [ "Ref::path". "Ref:cmd", "Ref::jmodeltestrunid" ]
+CMD [ "Ref::path". "Ref:cmd", "Ref::jmodeltestrunid", "Ref::sourcerequestid" ]
 
 # docker run -it mateusaubin/modeltest-lambda \
 # "mestrado-dev-phyml://#_src/primate-mtDNA.phy" \

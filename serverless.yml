@@ -159,6 +159,7 @@ resources:  # CloudFormation template syntax
           path: "bucket://path/to/file.phy"
           cmd : "PhyML commandline args"
           jmodeltestrunid: "jModelTest run id"
+          sourcerequestid: "None"
         RetryStrategy:
           Attempts: 2
         ContainerProperties:
@@ -169,6 +170,7 @@ resources:  # CloudFormation template syntax
           - Ref::path
           - Ref::cmd
           - Ref::jmodeltestrunid
+          - Ref::sourcerequestid
           JobRoleArn: 
             Ref: ECSTaskRole
           Environment:

@@ -13,7 +13,8 @@ import subprocess
 def execute(event, context):
     logging.debug('Received Event: {}'.format(event))
 
-    aws.correlation_id = context.aws_request_id
+    aws.correlation_id = event.get('SourceRequestId', context.aws_request_id)
+    logging.info("Lambda RequestId: {}".format(aws.correlation_id))
 
     for record in event['Records']:
 
