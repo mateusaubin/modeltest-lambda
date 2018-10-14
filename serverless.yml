@@ -61,6 +61,11 @@ functions:
     handler: forwarder.execute
     events:
       - sns: ${self:custom.dlqtopic}
+    environment:
+      BATCH_JOBDEF:
+        Ref: BatchJobDef
+      BATCH_JOBQUEUE:
+        Ref: BatchJobQueue
     package:
       # We're including this file so it will be in the final package of this function only
       include:
@@ -94,6 +99,7 @@ resources:  # CloudFormation template syntax
             Action: "sts:AssumeRole"
         ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+        # TODO: add s3 download and upload
     IamInstanceProfile:
       Type: AWS::IAM::InstanceProfile
       Properties:
