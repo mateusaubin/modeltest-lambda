@@ -13,13 +13,23 @@ def process_failed_record(record):
     # json {cmd, path} = Message
 
     payload = json.loads(record['Message'])
-    logging.info(payload)
+    payload['jmodeltestrunid'] = record['Subject']
+    logging.info(json.dumps(payload))
+
+    jobdef = os.getenv('BATCH_JOBDEF')
+    jobq = os.getenv('BATCH_JOBQUEUE')
+
+    logging.info("Def: {} | Queue: {}".format(jobdef, jobq))
+
+    assert jobdef, "Job Definition not found, unable to proceed with job submission"
+    assert jobq, "Job Queue not found, unable to proceed with job submission"
+
 
     response = aws_batch_cli.submit_job(
-                    jobName='forwardedFromLambda', # use your HutchNet ID instead of 'jdoe'
-                    jobDefinition='BatchJobDef-d6100469b297fb9:1', # use a real job definition
-                    jobQueue='BatchJobQueue-0127f6efa726a10', # sufficient for most jobs
-                    parameters=payload
+                    jobName         = 'forwardedFromLambda',
+                    jobDefinition   = jobdef,
+                    jobQueue        = jobq,
+                    parameters      = payload
                     #containerOverrides={
                     #    "environment": [ # optionally set environment variables
                     #        {"name": "FAVORITE_COLOR", "value": "blue"},
@@ -52,7 +62,7 @@ def process_sns_record(record):
     return results
 
 def execute(event, context):
-    logging.debug('Received Event: {}'.format(json.dumps(event)))
+    logging.critical('Received Event: {}'.format(json.dumps(event)))
 
     results = []
     
