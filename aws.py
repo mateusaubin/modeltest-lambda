@@ -7,6 +7,8 @@ import logging
 
 # aws request id
 correlation_id = None
+# aws lambda temp
+TEMP_FOLDER_PREFIX = '/tmp'
 
 # 'globally declared' for caching
 s3_client = boto3.client('s3')
@@ -23,22 +25,34 @@ def SilenceBoto():
 class SNS:
 
     def __init__(self, sns_message):
-        assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
-
-        logging.debug('Processing Message: {}'.format(
+        logging.debug("Processing Message: {}".format(
             json.dumps(sns_message['Message']))
         )
+
+        assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
+
         self.file_info = self.__parse(sns_message)
 
     def __parse(self, sns_message):
-        phyml_params = json.loads(sns_message['Message'])
-        filedata = phyml_params.pop('path').split('://')
 
+        MODELNAME_TOKEN = "--run_id "
+        BUCKETPATH_TOKEN = "://"
+        PHYML_EXTENSION = ".phy"
+
+        phyml_params = json.loads(sns_message['Message'])
         logging.info("Received Payload: {}".format(phyml_params))
 
+        filepath = phyml_params.pop('path')
+
+        assert BUCKETPATH_TOKEN in filepath and filepath.endswith(PHYML_EXTENSION), "Filepath not recognized"
+
         self.payload = phyml_params['cmd']
-        self.jmodel_modelname = self.payload.split('--run_id ')[1].split()[0]
+
+        assert MODELNAME_TOKEN in self.payload, "Payload doesn't look like it belongs to PhyML"
+
+        self.jmodel_modelname = self.payload.split(MODELNAME_TOKEN)[1].split()[0]
         self.jmodel_runid = sns_message['Subject']
+        filedata = filepath.split('://')
 
         return {'bucket': filedata[0], 'key': filedata[1]}
 
@@ -56,9 +70,15 @@ class S3Download:
             self.__download()
 
     def __generate_temp_paths(self):
-        self.tmp_folder = os.path.join('/tmp', correlation_id)
+        self.tmp_folder = os.path.join(
+            TEMP_FOLDER_PREFIX, 
+            correlation_id
+        )
         self.local_file = os.path.join(
-            '/tmp', correlation_id, "_input")
+            TEMP_FOLDER_PREFIX, 
+            correlation_id, 
+            "_input"
+        )
 
     def __download(self):
         os.makedirs(self.tmp_folder, exist_ok=True)
@@ -101,14 +121,14 @@ class S3Upload:
         for phyml_original_filename, fixed_filename in self.files.items():
 
             src_file = os.path.join(self.__tmp_folder, phyml_original_filename)
-            dst_file = "/".join([self.jmodel_runid, fixed_filename])
+            dst_file = os.path.join(self.jmodel_runid, fixed_filename)
 
             s3_client.upload_file(
                 src_file,
                 self.__src_bucket,
                 dst_file,
                 ExtraArgs={
-                    'ContentType': 'text/plain',
+                    'ContentType': "text/plain",
                     'ContentDisposition': phyml_original_filename
                 }
             )

@@ -3,7 +3,7 @@ import logging
 import aws
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 
 def process_failed_record(record, source_requestid):

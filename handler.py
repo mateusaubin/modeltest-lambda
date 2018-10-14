@@ -5,7 +5,7 @@ import logging
 import uuid
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 
 import subprocess
 
@@ -88,7 +88,7 @@ if __name__ == '__main__':
         # feed event file
         with open(os.getenv('DEBUG_FILE')) as f:
             contents = f.read().replace(
-                '{{message-subject}}', 
+                '{{message-subject}}',
                 context.aws_request_id
             )
             data = json.loads(contents)
@@ -98,4 +98,9 @@ if __name__ == '__main__':
         logging.warning("Execution Ended")
 
         import shutil
-        shutil.rmtree('/tmp/'+context.aws_request_id)
+        shutil.rmtree(
+            os.path.join(
+                aws.TEMP_FOLDER_PREFIX, 
+                context.aws_request_id
+            )
+        )

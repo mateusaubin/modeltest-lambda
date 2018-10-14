@@ -1,4 +1,3 @@
-import os
 import sys
 import json
 import logging
@@ -7,11 +6,10 @@ import logging
 import handler
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(levelname)-8s | %(message)s'
 )
 logger = logging.getLogger()
-
 
 
 filepath         = sys.argv[1]
@@ -19,16 +17,17 @@ commandlineargs  = sys.argv[2]
 jmodeltestrunid  = sys.argv[3]
 source_requestid = None if sys.argv[4] == 'None' else sys.argv[4]
 
+
 assert '://' in filepath and filepath.endswith('.phy'), "Filepath not recognized"
-assert '--run_id' in commandlineargs and '--no_memory_check' in commandlineargs, "Commandline doesn't look like it belongs to Phyml"
+assert '--run_id' in commandlineargs and '--no_memory_check' in commandlineargs, "Commandline doesn't look like it belongs to PhyML"
 assert jmodeltestrunid, "Runid mustn't be blank"
 
 
-cwd = os.getcwd()
-logger.critical("CWD={}".format(cwd))
-
-retry = os.getenv("AWS_BATCH_JOB_ATTEMPT", -1)
-logger.info("Retry={}".format(retry))
+#cwd = os.getcwd()
+# logger.critical("CWD={}".format(cwd))
+#
+#retry = os.getenv("AWS_BATCH_JOB_ATTEMPT", -1)
+# logger.info("Retry={}".format(retry))
 
 
 # build args
@@ -37,7 +36,7 @@ event_obj = {
     'Records': [{
         'Sns': {
             'Subject': jmodeltestrunid,
-            'Message': json.dumps( {'path': filepath, 'cmd': commandlineargs} ) # json payload
+            'Message': json.dumps({'path': filepath, 'cmd': commandlineargs})
         }
     }]
 }
@@ -46,7 +45,14 @@ if source_requestid:
 
 logger.info(json.dumps(event_obj))
 
+from timeit import default_timer as timer
+start = timer()
+
 # reuse lambda function
 handler.execute(event_obj, context_obj)
 
-logger.critical("----- THE END -----")
+duration = (timer() - start)
+duration = int(duration * 1000)
+
+logger.critical("REPORT RequestId: {} Duration: {} ms".format(
+    context_obj.aws_request_id, duration))
