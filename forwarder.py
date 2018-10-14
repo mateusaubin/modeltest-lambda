@@ -5,6 +5,7 @@ import aws
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def process_failed_record(record, source_requestid):
 
     payload = json.loads(record['Message'])
@@ -21,9 +22,9 @@ def process_failed_record(record, source_requestid):
     assert jobq, "Job Queue not found, unable to proceed with job submission"
 
     batch_result = aws.Batch(jobdef, jobq, payload)
-    
+
     return batch_result.jobId
-    
+
 
 def process_sns_record(record):
 
@@ -44,11 +45,11 @@ def process_sns_record(record):
     for failed in event_msg['Records']:
 
         submitted_job = process_failed_record(failed['Sns'], source_requestid)
-        
+
         results.append(submitted_job)
 
-
     return results
+
 
 def execute(event, context):
     aws.SilenceBoto()
@@ -56,17 +57,17 @@ def execute(event, context):
     logging.critical('Received Event: {}'.format(json.dumps(event)))
 
     results = []
-    
+
     for record in event['Records']:
 
         submitted_jobs = process_sns_record(record['Sns'])
 
         results.extend(submitted_jobs)
-    
 
     logging.warn("Jobs Submitted: {}".format(results))
+
     return 0
-    
+
 
 
 # ------- CUT HERE -------

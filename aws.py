@@ -5,12 +5,13 @@ from pathlib import Path
 import shutil
 import logging
 
-# aws request id 
+# aws request id
 correlation_id = None
 
 # 'globally declared' for caching
 s3_client = boto3.client('s3')
 batch_client = boto3.client('batch')
+
 
 def SilenceBoto():
     BOTO_LEVEL = logging.WARNING
@@ -18,12 +19,15 @@ def SilenceBoto():
     logging.getLogger('boto3').setLevel(BOTO_LEVEL)
     logging.getLogger('botocore').setLevel(BOTO_LEVEL)
 
+
 class SNS:
 
     def __init__(self, sns_message):
         assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
 
-        logging.debug('Processing Message: {}'.format(json.dumps(sns_message['Message'])))
+        logging.debug('Processing Message: {}'.format(
+            json.dumps(sns_message['Message']))
+        )
         self.file_info = self.__parse(sns_message)
 
     def __parse(self, sns_message):
@@ -60,22 +64,23 @@ class S3Download:
         os.makedirs(self.tmp_folder, exist_ok=True)
         logging.info(self.__file_info)
         s3_client.download_file(
-            self.__file_info['bucket'], 
-            self.__file_info['key'], 
+            self.__file_info['bucket'],
+            self.__file_info['key'],
             self.local_file
         )
 
 
 class S3Upload:
-    
-    NEEDED_FILES = ['trace','tree','stats']
 
+    NEEDED_FILES = ['trace', 'tree', 'stats']
 
     def __init__(self, tmp_folder, files, sns_result):
 
         # sanity check
         for string in files:
-            assert any(substring in string for substring in self.NEEDED_FILES), "Missing expected output files from Phyml"
+            assert any(
+                substring in string for substring in self.NEEDED_FILES
+            ), "Missing expected output files from Phyml"
 
         # save needed information
         self.__tmp_folder = tmp_folder
@@ -84,11 +89,11 @@ class S3Upload:
         self.jmodel_runid = sns_result.jmodel_runid
 
         # parse/fix filenames
-        self.files = {x : self.__FixPhymlTraceFilenames(x) for x in files}
+        self.files = {x: self.__FixPhymlTraceFilenames(x) for x in files}
 
         # send to s3
         self.uploaded_files = self.__upload()
-    
+
     def __upload(self):
 
         uploaded = []
@@ -109,36 +114,37 @@ class S3Upload:
             )
 
             uploaded.append(dst_file)
-        
+
         return uploaded
 
     def __FixPhymlTraceFilenames(self, filename):
 
-        remove_redundant = filename.replace("_input_phyml_","")
+        remove_redundant = filename.replace("_input_phyml_", "")
         remove_extension = remove_redundant[:-4]
 
         # make sure to keep Model identifier
         assert self.__jmodel_modelname in remove_extension, "Fixed filename lost Model name"
-        
+
         reverse = reversed(remove_extension.split("_"))
         result = ("_".join(reverse)) + ".txt"
-        
+
         return result
+
 
 class Batch:
     def __init__(self, jobdef, jobq, payload):
         response = batch_client.submit_job(
-                        jobName         = 'forwardedFromLambda',
-                        jobDefinition   = jobdef,
-                        jobQueue        = jobq,
-                        parameters      = payload
-                        #containerOverrides={
-                        #    "environment": [ # optionally set environment variables
-                        #        {"name": "FAVORITE_COLOR", "value": "blue"},
-                        #        {"name": "FAVORITE_MONTH", "value": "December"}
-                        #    ]
-                        #}
-                    )
+            jobName       = 'forwardedFromLambda',
+            jobDefinition = jobdef,
+            jobQueue      = jobq,
+            parameters    = payload
+            #containerOverrides={
+            #    "environment": [ # optionally set environment variables
+            #        {"name": "FAVORITE_COLOR", "value": "blue"},
+            #        {"name": "FAVORITE_MONTH", "value": "December"}
+            #    ]
+            #}
+        )
 
         assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
         assert response['jobId'], "Empty JobId"
