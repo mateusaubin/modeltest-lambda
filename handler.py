@@ -11,6 +11,8 @@ import subprocess
 
 
 def execute(event, context):
+    aws.SilenceBoto()
+
     logging.debug('Received Event: {}'.format(event))
 
     aws.correlation_id = event.get('SourceRequestId', context.aws_request_id)

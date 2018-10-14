@@ -10,7 +10,13 @@ correlation_id = None
 
 # 'globally declared' for caching
 s3_client = boto3.client('s3')
+batch_client = boto3.client('batch')
 
+def SilenceBoto():
+    BOTO_LEVEL = logging.WARNING
+    logging.getLogger('boto').setLevel(BOTO_LEVEL)
+    logging.getLogger('boto3').setLevel(BOTO_LEVEL)
+    logging.getLogger('botocore').setLevel(BOTO_LEVEL)
 
 class SNS:
 
@@ -118,3 +124,25 @@ class S3Upload:
         result = ("_".join(reverse)) + ".txt"
         
         return result
+
+class Batch:
+    def __init__(self, jobdef, jobq, payload):
+        response = batch_client.submit_job(
+                        jobName         = 'forwardedFromLambda',
+                        jobDefinition   = jobdef,
+                        jobQueue        = jobq,
+                        parameters      = payload
+                        #containerOverrides={
+                        #    "environment": [ # optionally set environment variables
+                        #        {"name": "FAVORITE_COLOR", "value": "blue"},
+                        #        {"name": "FAVORITE_MONTH", "value": "December"}
+                        #    ]
+                        #}
+                    )
+
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
+        assert response['jobId'], "Empty JobId"
+
+        logging.debug("Job ID is {}.".format(response['jobId']))
+
+        self.jobId = response['jobId']

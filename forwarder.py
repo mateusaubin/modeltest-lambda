@@ -1,11 +1,9 @@
 import json
 import logging
-import boto3
+import aws
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
-
-aws_batch_cli = boto3.client('batch')
 
 def process_failed_record(record, source_requestid):
 
@@ -22,26 +20,11 @@ def process_failed_record(record, source_requestid):
     assert jobdef, "Job Definition not found, unable to proceed with job submission"
     assert jobq, "Job Queue not found, unable to proceed with job submission"
 
-
-    response = aws_batch_cli.submit_job(
-                    jobName         = 'forwardedFromLambda',
-                    jobDefinition   = jobdef,
-                    jobQueue        = jobq,
-                    parameters      = payload
-                    #containerOverrides={
-                    #    "environment": [ # optionally set environment variables
-                    #        {"name": "FAVORITE_COLOR", "value": "blue"},
-                    #        {"name": "FAVORITE_MONTH", "value": "December"}
-                    #    ]
-                    #}
-                )
-
-    logging.debug("Job ID is {}.".format(response['jobId']))
-
-    assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
-
-    return response['jobId']
+    batch_result = aws.Batch(jobdef, jobq, payload)
     
+    return batch_result.jobId
+    
+
 def process_sns_record(record):
 
     sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
@@ -68,6 +51,8 @@ def process_sns_record(record):
     return results
 
 def execute(event, context):
+    aws.SilenceBoto()
+
     logging.critical('Received Event: {}'.format(json.dumps(event)))
 
     results = []
@@ -80,6 +65,7 @@ def execute(event, context):
     
 
     logging.warn("Jobs Submitted: {}".format(results))
+    return 0
     
 
 
