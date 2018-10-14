@@ -1,0 +1,35 @@
+{
+    "Records": [
+        {
+            "EventSource": "aws:sns",
+            "EventVersion": "1.0",
+            "EventSubscriptionArn": "arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed:59c02a8a-1194-4927-b34b-c586cf567b41",
+            "Sns": {
+                "Type": "Notification",
+                "MessageId": "3d9ad8cc-d816-5cf6-8e03-8cf053de9443",
+                "TopicArn": "arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed",
+                "Subject": null,
+                "Message": "{\"Records\":[{\"EventVersion\":\"1.0\",\"EventSubscriptionArn\":\"arn:aws:sns:EXAMPLE\",\"EventSource\":\"aws:sns\",\"Sns\":{\"Message\":\"{\\\"path\\\": \\\"mestrado-dev-phyml://#_src/primate-mtDNA.phy\\\", \\\"cmd\\\": \\\"-d nt -n 1 -b 0 --run_id GTR+I+G -m 012345 -f m -v e -c 4 -a e --no_memory_check --r_seed 12345 -o tlr -s BEST\\\"}\",\"Subject\":\"VMware-primate\",\"SignatureVersion\":\"1\",\"Timestamp\":\"1970-01-01T00:00:00.000Z\",\"Signature\":\"EXAMPLE\",\"SigningCertUrl\":\"EXAMPLE\",\"MessageId\":\"95df01b4-ee98-5cb9-9903-4c221d41eb5e\",\"MessageAttributes\":{},\"Type\":\"Notification\",\"UnsubscribeUrl\":\"EXAMPLE\",\"TopicArn\":\"arn:aws:sns:EXAMPLE\"}}]}",
+                "Timestamp": "2018-10-14T00:10:48.613Z",
+                "SignatureVersion": "1",
+                "Signature": "ff0QW9+xUCg87YxTMcHpfZAszatfoS3R7Jb8YbpcNg7SpRAzANyF6Zv4VtMKGxXQLK4E+JqSYuRRbC+GvUxDxxdoP5rAfN7zGyyU/Td0CrwnJ9IUEuSOrxJrs0EM+w4EJmijJecedREviK0aktWRWkycPHCbY36w3vCMwoZxs2hXpdIKRjS8F5cPTaQgi90EuxM51NoG0Z5Gl7gSTZ7g1ROnxklOovM5DK5VCRt05AvEZxR5kxrdyd/o+OtjLkowtGEYKYmxM3nRhkYHcM3MSgs0HAvA4spSiyCy0/WiC4oE7hzv8Cqm26y2VLIoK5+Tcz96E5RKIYTlIevgklRzbQ==",
+                "SigningCertUrl": "https://sns.us-east-2.amazonaws.com/SimpleNotificationService-ac565b8b1a6c5d002d285f9598aa1d9b.pem",
+                "UnsubscribeUrl": "https://sns.us-east-2.amazonaws.com/?Action=Unsubscribe&SubscriptionArn=arn:aws:sns:us-east-2:280819064017:mestrado-dev-failed:59c02a8a-1194-4927-b34b-c586cf567b41",
+                "MessageAttributes": {
+                    "RequestID": {
+                        "Type": "String",
+                        "Value": "20e79191-cf45-11e8-ae41-4536adf7d165"
+                    },
+                    "ErrorCode": {
+                        "Type": "String",
+                        "Value": "200"
+                    },
+                    "ErrorMessage": {
+                        "Type": "String",
+                        "Value": "2018-10-14T00:10:48.451Z 20e79191-cf45-11e8-ae41-4536adf7d165 Task timed out after 8.00 seconds"
+                    }
+                }
+            }
+        }
+    ]
+}
