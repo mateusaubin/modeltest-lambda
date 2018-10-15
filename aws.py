@@ -17,16 +17,19 @@ batch_client = boto3.client('batch')
 
 def SilenceBoto():
     BOTO_LEVEL = logging.WARNING
-    logging.getLogger('boto').setLevel(BOTO_LEVEL)
+    
+    logging.getLogger('nose').setLevel(BOTO_LEVEL)
     logging.getLogger('boto3').setLevel(BOTO_LEVEL)
+    logging.getLogger('urllib3').setLevel(BOTO_LEVEL)
     logging.getLogger('botocore').setLevel(BOTO_LEVEL)
+    logging.getLogger('s3transfer').setLevel(BOTO_LEVEL)
 
 
 class SNS:
 
     def __init__(self, sns_message):
         logging.debug("Processing Message: {}".format(
-            json.dumps(sns_message['Message']))
+            sns_message['Message'])
         )
 
         assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
@@ -40,7 +43,7 @@ class SNS:
         PHYML_EXTENSION = ".phy"
 
         phyml_params = json.loads(sns_message['Message'])
-        logging.info("Received Payload: {}".format(phyml_params))
+        logging.info("Received Payload: {}".format(json.dumps(phyml_params)))
 
         filepath = phyml_params.pop('path')
 
@@ -152,9 +155,10 @@ class S3Upload:
 
 
 class Batch:
+    
     def __init__(self, jobdef, jobq, payload):
         response = batch_client.submit_job(
-            jobName       = 'forwardedFromLambda',
+            jobName       = payload['sourcerequestid'],
             jobDefinition = jobdef,
             jobQueue      = jobq,
             parameters    = payload

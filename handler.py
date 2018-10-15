@@ -1,19 +1,20 @@
 import os
 import json
-import aws
 import logging
 import uuid
+import subprocess
+from timeit import default_timer as timer
+
+import aws
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
-import subprocess
 
 
 def execute(event, context):
     aws.SilenceBoto()
 
-    logging.debug('Received Event: {}'.format(event))
+    logging.debug('Received Event: {}'.format(json.dumps(event)))
 
     aws.correlation_id = event.get('SourceRequestId', context.aws_request_id)
     logging.info("Lambda RequestId: {}".format(aws.correlation_id))
@@ -22,7 +23,10 @@ def execute(event, context):
 
         logging.info("Subject: {}".format(record['Sns']['Subject']))
 
+        # parse
         sns_result = aws.SNS(record['Sns'])
+
+        # download
         s3_result = aws.S3Download(sns_result.file_info)
 
         cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml'), ]
@@ -34,10 +38,13 @@ def execute(event, context):
             "_input_phyml_trace_{}.txt".format(sns_result.jmodel_modelname)
         )
 
+        phyml_start = timer()
         with open(trace_file, "w") as file:
             result = subprocess.run(cmdline_args,
                                     stdout=file,
                                     stderr=subprocess.STDOUT)
+        phyml_duration = (timer() - phyml_start)
+        logging.warn("PhyML took {} secs".format(phyml_duration))
 
         # bail out if phyml error'd
         if result.returncode != 0:
@@ -56,8 +63,9 @@ def execute(event, context):
         result_files = [x for x in os.listdir(
             s3_result.tmp_folder) if x != "_input"]
 
-        logging.warn("Phyml produced = {}".format(result_files))
+        logging.debug("Phyml produced = {}".format(result_files))
 
+        # upload
         s3_up = aws.S3Upload(s3_result.tmp_folder, result_files, sns_result)
 
         logging.info("Uploaded = {} to {}://{}/".format(

@@ -1,9 +1,10 @@
+import os
 import sys
 import json
 import logging
 
-
 import handler
+
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -21,6 +22,17 @@ source_requestid = None if sys.argv[4] == 'None' else sys.argv[4]
 assert '://' in filepath and filepath.endswith('.phy'), "Filepath not recognized"
 assert '--run_id' in commandlineargs and '--no_memory_check' in commandlineargs, "Commandline doesn't look like it belongs to PhyML"
 assert jmodeltestrunid, "Runid mustn't be blank"
+
+
+info = { 
+    'JobId':        os.getenv("AWS_BATCH_JOB_ID", None), 
+    'AttemptNo':    os.getenv("AWS_BATCH_JOB_ATTEMPT", -1),
+    'FilePath':     filepath,
+    'CmdArgs':      commandlineargs,
+    'jModelRunId':  jmodeltestrunid,
+    'SrcRequestId': source_requestid
+}
+logger.warning("Started Docker: {}".format(json.dumps(info)))
 
 
 #cwd = os.getcwd()

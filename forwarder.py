@@ -1,9 +1,29 @@
+import os
 import json
 import logging
+
 import aws
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
+env = None
+jobdef = os.getenv('BATCH_JOBDEF')
+jobq = os.getenv('BATCH_JOBQUEUE')
+sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
+
+def GatherEnvVars():
+    global env
+
+    assert jobdef, "Job Definition not found, unable to proceed with job submission"
+    assert jobq, "Job Queue not found, unable to proceed with job submission"
+
+    env = {
+        'JobDefinition': jobdef,
+        'JobQueue':      jobq,
+        'SourceTopic':   sourcetopic
+    }
 
 
 def process_failed_record(record, source_requestid):
@@ -13,22 +33,15 @@ def process_failed_record(record, source_requestid):
     payload['sourcerequestid'] = source_requestid
     logging.info(json.dumps(payload))
 
-    jobdef = os.getenv('BATCH_JOBDEF')
-    jobq = os.getenv('BATCH_JOBQUEUE')
-
-    logging.info("Def: {} | Queue: {}".format(jobdef, jobq))
-
-    assert jobdef, "Job Definition not found, unable to proceed with job submission"
-    assert jobq, "Job Queue not found, unable to proceed with job submission"
-
     batch_result = aws.Batch(jobdef, jobq, payload)
+
+    info = {key: value for (key, value) in (list(payload.items()) + list(env.items()))}
+    logging.warning("Submitted Batch Job: {}".format(json.dumps(info)))
 
     return batch_result.jobId
 
 
 def process_sns_record(record):
-
-    sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
 
     topic_arn = record['TopicArn']
     error_message = record['MessageAttributes']['ErrorMessage']['Value']
@@ -53,8 +66,10 @@ def process_sns_record(record):
 
 def execute(event, context):
     aws.SilenceBoto()
+    
+    logging.debug('Received Event: {}'.format(json.dumps(event)))
 
-    logging.critical('Received Event: {}'.format(json.dumps(event)))
+    GatherEnvVars()
 
     results = []
 
@@ -72,7 +87,6 @@ def execute(event, context):
 
 # ------- CUT HERE -------
 
-import os
 
 if bool(os.getenv('IS_LOCAL', False)) & bool(os.getenv('VSCODE', False)):
     # log setup
