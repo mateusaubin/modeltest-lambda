@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 
-import handler
+import modeltest
 
 
 logging.basicConfig(
@@ -43,7 +43,7 @@ logger.warning("Started Docker: {}".format(json.dumps(info)))
 
 
 # build args
-context_obj = handler.Context()
+context_obj = modeltest.Context()
 event_obj = {
     'Records': [{
         'Sns': {
@@ -61,7 +61,7 @@ from timeit import default_timer as timer
 start = timer()
 
 # reuse lambda function
-handler.execute(event_obj, context_obj)
+modeltest.execute(event_obj, context_obj)
 
 duration = (timer() - start)
 duration = int(duration * 1000)

@@ -39,21 +39,21 @@ package:
   individually: true
   exclude:
     - "*/**"
-    - "!aws.py"
+    - "!src/aws.py"
 
 functions:
 
   modeltest:
     memorySize: "${self:custom.memoryAllocation}"
     timeout: 900
-    handler: handler.execute
+    handler: modeltest.execute
     onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
     events:
       - sns: ${self:custom.inputtopic}
     package:
       include:
         - "lib/phyml"
-        - handler.py
+        - src/modeltest.py
 
   forwarder:
     memorySize: 128
@@ -69,7 +69,7 @@ functions:
       MODELTEST_DLQTOPIC: ${self:custom.dlqtopic}
     package:
       include:
-        - forwarder.py
+        - src/forwarder.py
 
         
 

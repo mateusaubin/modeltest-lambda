@@ -5,15 +5,46 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Handler.py (Integrated Terminal)",
+            "name": "ModelTest.py",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/handler.py",
+            "program": "${workspaceFolder}/src/modeltest.py",
             "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "IS_LOCAL": "True",
                 "VSCODE": "True",
-                "DEBUG_FILE": "small.json"
+                "DEBUG_FILE": "samples/aP6.json"
+            }
+        },
+        {
+            "name": "DockerEntrypoint.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/dockerentrypoint.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": [
+                "mestrado-dev-phyml://#_src/primate-mtDNA.phy",
+                "-d nt -n 1 -b 0 --run_id GTR+I+G -m 012345 -f m -v e -c 4 -a e --no_memory_check --r_seed 12345 -o tlr -s BEST",
+                "jmodeltest-runid",
+                "None"
+            ]
+        },
+        {
+            "name": "Forwarder.py",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/forwarder.py",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "IS_LOCAL": "True",
+                "VSCODE": "True",
+                "DEBUG_FILE": "samples/forwarder-aP6.json",
+                "MODELTEST_DLQTOPIC": "mestrado-dev-failed",
+                "BATCH_JOBDEF": "BatchJobDef-17140a15806707c:1",
+                "BATCH_JOBQUEUE": "BatchJobQueue-34d4fde12308baa"
             }
         }
     ]

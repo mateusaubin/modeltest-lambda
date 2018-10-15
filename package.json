@@ -1,7 +1,12 @@
 {
-  "name": "mestrado",
+  "name": "modeltest-lambda",
   "description": "",
   "version": "0.1.0",
+  "homepage": "https://github.com/mateusaubin/modeltest-lambda#readme",
+  "author": {
+    "name": "Mateus Aubin"
+  },
+  "main": "src/modeltest.py",
   "dependencies": {},
   "devDependencies": {
     "serverless-pseudo-parameters": "^2.2.0",
