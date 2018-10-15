@@ -27,8 +27,8 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-        - s3:Put*
-        - s3:Get*
+        - s3:PutObject*
+        - s3:GetObject*
       Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
     - Effect: Allow
       Action:
@@ -55,7 +55,7 @@ functions:
         - "lib/phyml"
         - handler.py
 
-  dlq-forwarder:
+  forwarder:
     memorySize: 128
     timeout: 5
     handler: forwarder.execute
@@ -68,7 +68,6 @@ functions:
         Ref: BatchJobQueue
       MODELTEST_DLQTOPIC: ${self:custom.dlqtopic}
     package:
-      # We're including this file so it will be in the final package of this function only
       include:
         - forwarder.py
 
@@ -155,7 +154,6 @@ resources:  # CloudFormation template syntax
       Properties:
         Type: container
         Parameters:
-          #phyfilepath : small
           path: "bucket://path/to/file.phy"
           cmd : "PhyML commandline args"
           jmodeltestrunid: "jModelTest run id"
