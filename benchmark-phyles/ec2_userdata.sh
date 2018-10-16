@@ -47,21 +47,31 @@ rm -rf results/
 mkdir results/
 
 for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); do # -m 3 = limit 3
-  echo === $filename ===
+  
+  echo === Start: $filename ===
   
   sleep 5
+
   java -jar jmodeltest-2.1.10/jModelTest.jar \
   -d modeltest-lambda/benchmark-phyles/$filename \
   -s 203 -f -i -g 4 -n test \
   | tee results/${filename%.*}.txt \
   || break
   
-  echo ----
+  echo === Done: $filename ===
+  
+  sleep 5 #flush buffers
+
+  # save execution time
+  stat -c '%n = %x | %y' results/${filename%.*}.txt > results/#_stats.txt
+
+  # upload partial results
+  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
+
 done
 
 
-stat -c '%n = %x | %y' results/*.txt > results/#_stats.txt
-
+# ensure full upload
 aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
 
 echo === Done: Shutdown ===
