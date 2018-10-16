@@ -64,7 +64,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   sleep 5 #flush buffers
 
   # save execution time
-  stat -c '%n = %x | %y' results/${filename%.*}.txt > results/#_stats.txt
+  stat -c '%30n = %x | %y' results/${filename%.*}.txt >> results/#_stats.txt
 
   # upload partial results
   aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
