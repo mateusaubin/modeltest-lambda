@@ -36,6 +36,7 @@ git checkout HEAD benchmark-phyles/*.phy
 
 # Benchmark Script
 cd ..
+export AWS_DEFAULT_REGION="us-east-2"
 
 cat > benchmark.sh <<"EOF"
 #!/bin/bash
@@ -71,15 +72,16 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
 done
 
 
+echo === Done: Shutdown ===
+
 # ensure full upload
 aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
 
-echo === Done: Shutdown ===
-sleep 5
-shutdown -h now
+sleep 15
 
 EOF
 
 # Benchmark Execution
 chmod +x benchmark.sh
 ./benchmark.sh
+shutdown -h now
