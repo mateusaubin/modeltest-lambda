@@ -13,6 +13,7 @@ custom:
   inputtopic: "${self:service}-${opt:stage, self:provider.stage}-input"
   sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml"
   memoryAllocation: "256"
+  batchClusterCpus: 2
   remover:
     buckets:
       - ${self:custom.sourceBucket}
@@ -75,6 +76,25 @@ functions:
 
 resources:  # CloudFormation template syntax
   Resources:
+    # Lambda Functions:
+    #   explicit dependencies to avoid errors during stack creation
+    ModeltestLambdaFunction:
+      DependsOn: 
+        - ModeltestLogGroup
+        - IamRoleLambdaExecution
+        - SNSTopicMestradodevfailed
+        - InputBucket
+    ForwarderLambdaFunction:
+      DependsOn:
+        - ForwarderLogGroup
+        - IamRoleLambdaExecution
+        - BatchJobDef
+    # S3 Resources
+    InputBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "${self:custom.sourceBucket}"
+    # AWS Batch Resources
     BatchServiceRole:
       Type: AWS::IAM::Role
       Properties:
@@ -145,10 +165,6 @@ resources:  # CloudFormation template syntax
         ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetRole
         - arn:aws:iam::aws:policy/service-role/AmazonEC2SpotFleetTaggingRole
-    InputBucket:
-      Type: AWS::S3::Bucket
-      Properties:
-        BucketName: "${self:custom.sourceBucket}"
     BatchJobDef:
       Type: AWS::Batch::JobDefinition
       Properties:
@@ -175,11 +191,12 @@ resources:  # CloudFormation template syntax
               # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html#environment-variable-configuration
             - Name: AWS_DEFAULT_REGION
               Value: "${self:provider.region}"
+      DependsOn:
+        - BatchJobQueue
     BatchJobQueue:
       Type: AWS::Batch::JobQueue
       Properties:
-        #JobQueueName: LowPriorityBatchCloudformationJobqueue
-        Priority: 500
+        Priority: 50
         ComputeEnvironmentOrder:
         - Order: 1
           ComputeEnvironment:
@@ -196,7 +213,7 @@ resources:  # CloudFormation template syntax
           ImageId: ami-09a64272e7fe706b6 #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
           MinvCpus: 0
           DesiredvCpus: 0
-          MaxvCpus: 2
+          MaxvCpus: ${self:custom.batchClusterCpus}
           InstanceTypes:
             - c4
             - c5
