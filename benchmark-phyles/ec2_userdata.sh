@@ -53,14 +53,14 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   java -jar jmodeltest-2.1.10/jModelTest.jar \
   -d modeltest-lambda/benchmark-phyles/$filename \
   -s 203 -f -i -g 4 -n test \
-  | tee results/${filename%.*}.log \
+  | tee results/${filename%.*}.txt \
   || break
   
   echo ----
 done
 
 
-stat -c '%n = %x | %y' results/*.log > results/#_stats.log
+stat -c '%n = %x | %y' results/*.txt > results/#_stats.txt
 
 aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
 
