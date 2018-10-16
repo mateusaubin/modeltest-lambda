@@ -20,8 +20,6 @@ Content-Disposition: attachment; filename="userdata.txt"
 #!/bin/bash
 
 # java
-#sudo add-apt-repository ppa:linuxuprising/java
-#sudo apt install oracle-java10-installer
 apt update
 DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 apt install awscli -y
@@ -32,9 +30,6 @@ wget https://github.com/ddarriba/jmodeltest2/files/157117/jmodeltest-2.1.10.tar.
 tar -xvzf jmodeltest-2.1.10.tar.gz
 
 # Benchmark Dependencies
-#mkdir benchmark-data
-#cd benchmark-data/
-
 git clone -n https://github.com/mateusaubin/modeltest-lambda.git --depth 1
 cd modeltest-lambda/
 git checkout HEAD benchmark-phyles/*.phy
