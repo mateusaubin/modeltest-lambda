@@ -43,6 +43,7 @@ cat > benchmark.sh <<"EOF"
 
 time_start=$(date +"%Y-%m-%d_%H-%M-%S")
 instance_type=$(curl http://169.254.169.254/latest/meta-data/instance-type)
+instance_id=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
 rm -rf results/
 mkdir results/
@@ -67,7 +68,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   stat -c '%30n = %x | %y' results/${filename%.*}.txt >> results/#_stats.txt
 
   # upload partial results
-  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
+  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start-$instance_id/ --delete
 
 done
 
@@ -78,7 +79,7 @@ sleep 5
 
 # ensure full upload
 echo '#s3-sync#' >> results/#_stats.txt
-aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
+aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start-$instance_id/ --delete
 
 sleep 15
 
