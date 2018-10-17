@@ -74,9 +74,11 @@ done
 
 echo === Done: Shutdown ===
 
+sleep 5
+
 # ensure full upload
+echo '#s3-sync#' >> results/#_stats.txt
 aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start/ --delete
-echo 's3-sync' >> results/#_stats.txt
 
 sleep 15
 
