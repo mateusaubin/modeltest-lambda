@@ -34,16 +34,18 @@ git clone -n https://github.com/mateusaubin/modeltest-lambda.git --depth 1
 cd modeltest-lambda/
 git checkout HEAD benchmark-phyles/*.phy
 
+# Environment Variables
+export AWS_DEFAULT_REGION="us-east-2"
+export MDLTST_INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type -s)
+export MDLTST_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
+tmp_time=$(aws ec2 describe-instances --instance-ids $MDLTST_INSTANCE_ID --query "Reservations[*].Instances[*].[LaunchTime]" --output text)
+export MDLTST_INSTANCE_LAUNCH=${tmp_time:0:19}
+
 # Benchmark Script
 cd ..
-export AWS_DEFAULT_REGION="us-east-2"
-
 cat > benchmark.sh <<"EOF"
 #!/bin/bash
-
-time_start=$(date +"%Y-%m-%d_%H-%M-%S")
-instance_type=$(curl http://169.254.169.254/latest/meta-data/instance-type)
-instance_id=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+set -e # bail-out if anything goes wrong
 
 rm -rf results/
 mkdir results/
@@ -68,7 +70,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   stat -c '%30n = %x | %y' results/${filename%.*}.txt >> results/#_stats.txt
 
   # upload partial results
-  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start-$instance_id/ --delete
+  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
 
 done
 
@@ -79,7 +81,7 @@ sleep 5
 
 # ensure full upload
 echo '#s3-sync#' >> results/#_stats.txt
-aws s3 sync results/ s3://mestrado-dev-phyml-fixed/$instance_type-$time_start-$instance_id/ --delete
+aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
 
 sleep 15
 
@@ -87,5 +89,9 @@ EOF
 
 # Benchmark Execution
 chmod +x benchmark.sh
-./benchmark.sh
+
+                # sync on fail anyway
+./benchmark.sh || aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
+
+
 shutdown -h now
