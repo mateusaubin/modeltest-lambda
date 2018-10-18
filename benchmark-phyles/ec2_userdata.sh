@@ -36,10 +36,15 @@ git checkout HEAD benchmark-phyles/*.phy
 
 # Environment Variables
 export AWS_DEFAULT_REGION="us-east-2"
+export MDLTST_VCPUS=`printf %02d $(nproc --all)`
 export MDLTST_INSTANCE_TYPE=$(curl http://169.254.169.254/latest/meta-data/instance-type -s)
 export MDLTST_INSTANCE_ID=$(curl http://169.254.169.254/latest/meta-data/instance-id -s)
+
 tmp_time=$(aws ec2 describe-instances --instance-ids $MDLTST_INSTANCE_ID --query "Reservations[*].Instances[*].[LaunchTime]" --output text)
-export MDLTST_INSTANCE_LAUNCH=${tmp_time:0:19}
+tmp_time=${tmp_time:0:16}
+export MDLTST_INSTANCE_LAUNCH=${tmp_time//:/-}
+
+export MDLTST_S3ADDRESS=s3://mestrado-dev-phyml-fixed/${MDLTST_VCPUS}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_ID:2}/
 
 # Benchmark Script
 cd ..
@@ -70,7 +75,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   stat -c '%30n = %x | %y' results/${filename%.*}.txt >> results/#_stats.txt
 
   # upload partial results
-  aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
+  aws s3 sync results/ $MDLTST_S3ADDRESS --delete
 
 done
 
@@ -81,7 +86,7 @@ sleep 5
 
 # ensure full upload
 echo '#s3-sync#' >> results/#_stats.txt
-aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
+aws s3 sync results/ $MDLTST_S3ADDRESS --delete
 
 sleep 15
 
@@ -91,7 +96,7 @@ EOF
 chmod +x benchmark.sh
 
                 # sync on fail anyway
-./benchmark.sh || aws s3 sync results/ s3://mestrado-dev-phyml-fixed/${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_ID}/ --delete
+./benchmark.sh || aws s3 sync results/ $MDLTST_S3ADDRESS --delete
 
 
 shutdown -h now
