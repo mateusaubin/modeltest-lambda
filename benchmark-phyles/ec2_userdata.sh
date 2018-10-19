@@ -46,6 +46,15 @@ export MDLTST_INSTANCE_LAUNCH=${tmp_time//:/-}
 
 export MDLTST_S3ADDRESS=s3://mestrado-dev-phyml-fixed/${MDLTST_VCPUS}_${MDLTST_INSTANCE_LAUNCH}_${MDLTST_INSTANCE_TYPE}_${MDLTST_INSTANCE_ID:2}/
 
+# Trap Handling
+function finish {
+  aws s3 sync results/ $MDLTST_S3ADDRESS
+
+  shutdown -h now
+}
+trap finish INT TERM
+
+
 # Benchmark Script
 cd ..
 cat > benchmark.sh <<"EOF"
@@ -72,10 +81,10 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   sleep 5 #flush buffers
 
   # save execution time
-  stat -c '%30n = %x | %y' results/${filename%.*}.txt >> results/#_stats.txt
+  stat -c '%30n = %x | %y' results/${filename%.*}.txt >> 'results/#_stats.txt'
 
   # upload partial results
-  aws s3 sync results/ $MDLTST_S3ADDRESS --delete
+  aws s3 sync results/ $MDLTST_S3ADDRESS
 
 done
 
@@ -85,8 +94,8 @@ echo === Done: Shutdown ===
 sleep 5
 
 # ensure full upload
-echo '#s3-sync#' >> results/#_stats.txt
-aws s3 sync results/ $MDLTST_S3ADDRESS --delete
+echo '#s3-sync#' $(uptime -p) ! $(uptime -s) >> 'results/#_stats.txt'
+aws s3 sync results/ $MDLTST_S3ADDRESS
 
 sleep 15
 
@@ -96,7 +105,6 @@ EOF
 chmod +x benchmark.sh
 
                 # sync on fail anyway
-./benchmark.sh || aws s3 sync results/ $MDLTST_S3ADDRESS --delete
+./benchmark.sh || echo '@ FAIL @' $(uptime -p) ! $(uptime -s) >> 'results/#_stats.txt'
 
-
-shutdown -h now
+finish
