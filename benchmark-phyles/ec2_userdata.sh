@@ -64,24 +64,28 @@ set -e # bail-out if anything goes wrong
 rm -rf results/
 mkdir results/
 
-for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); do # -m 3 = limit 3
+for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i -m 3 '.phy' ); do # -m 3 = limit 3
   
   echo === Start: $filename ===
   
   sleep 5
+  start_time=$( date +%s.%N -u )
 
   java -jar jmodeltest-2.1.10/jModelTest.jar \
   -d modeltest-lambda/benchmark-phyles/$filename \
   -s 203 -f -i -g 4 -n test \
-  | tee results/${filename%.*}.txt \
+  -o results/${filename%.*}.txt \
   || break
+
+  runtime_total=$( date +%T.%N -u --date="$start_time seconds ago" )
   
   echo === Done: $filename ===
   
   sleep 5 #flush buffers
 
   # save execution time
-  stat -c '%30n = %x | %y' results/${filename%.*}.txt >> 'results/#_stats.txt'
+  runtime_filestat=`stat -c '%n = %x | %y' results/${filename%.*}.txt`
+  echo $runtime_filestat' | '$runtime_total >> 'results/#_stats.txt'
 
   # upload partial results
   aws s3 sync results/ $MDLTST_S3ADDRESS
