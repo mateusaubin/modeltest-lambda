@@ -26,8 +26,9 @@ apt install awscli -y
 apt-get install default-jre -y
 
 # jModelTest
-wget https://github.com/ddarriba/jmodeltest2/files/157117/jmodeltest-2.1.10.tar.gz
-tar -xvzf jmodeltest-2.1.10.tar.gz
+export JMDL_RELEASE="jmodeltest2-aubin"
+wget -q https://github.com/mateusaubin/jmodeltest2/releases/download/bench-4/$JMDL_RELEASE.tar.gz
+tar -xvzf $JMDL_RELEASE.tar.gz
 
 # Benchmark Dependencies
 git clone -n https://github.com/mateusaubin/modeltest-lambda.git --depth 1
@@ -71,9 +72,9 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   sleep 5
   start_time=$( date +%s.%N -u )
 
-  java -jar jmodeltest-2.1.10/jModelTest.jar \
+  java -jar ${JMDL_RELEASE}/jModelTest.jar \
   -d modeltest-lambda/benchmark-phyles/$filename \
-  -s 203 -f -i -g 4 -n test \
+  -s 203 -f -i -g 4 \
   -o results/${filename%.*}.txt
 
   runtime_total=$( date +%T.%N -u --date="$start_time seconds ago" )
