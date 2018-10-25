@@ -74,8 +74,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
   java -jar jmodeltest-2.1.10/jModelTest.jar \
   -d modeltest-lambda/benchmark-phyles/$filename \
   -s 203 -f -i -g 4 -n test \
-  -o results/${filename%.*}.txt \
-  || break
+  -o results/${filename%.*}.txt
 
   runtime_total=$( date +%T.%N -u --date="$start_time seconds ago" )
   
