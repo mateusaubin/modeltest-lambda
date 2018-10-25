@@ -64,7 +64,7 @@ set -e # bail-out if anything goes wrong
 rm -rf results/
 mkdir results/
 
-for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i -m 3 '.phy' ); do # -m 3 = limit 3
+for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); do # -m 3 = limit 3
   
   echo === Start: $filename ===
   
