@@ -41,13 +41,14 @@ package:
   exclude:
     - "*/**"
     - "!src/aws.py"
+    - "!*/__init__.py"
 
 functions:
 
   modeltest:
     memorySize: "${self:custom.memoryAllocation}"
     timeout: 900
-    handler: modeltest.execute
+    handler: src/modeltest.execute
     onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
     events:
       - sns: ${self:custom.inputtopic}
@@ -59,7 +60,7 @@ functions:
   forwarder:
     memorySize: 128
     timeout: 5
-    handler: forwarder.execute
+    handler: src/forwarder.execute
     events:
       - sns: ${self:custom.dlqtopic}
     environment:
