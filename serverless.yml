@@ -35,6 +35,10 @@ provider:
       Action:
         - batch:SubmitJob
       Resource: "arn:aws:batch:#{AWS::Region}:#{AWS::AccountId}:*"
+    - Effect: Allow
+      Action:
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/*"
 
 package:
   individually: true

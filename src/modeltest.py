@@ -78,6 +78,8 @@ def execute(event, context):
             s3_up.jmodel_runid)
         )
 
+        aws.DynamoDB(sns_result.jmodel_runid, sns_result.jmodel_modelname)
+
     return 0
 
 

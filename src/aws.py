@@ -13,6 +13,7 @@ TEMP_FOLDER_PREFIX = '/tmp'
 # 'globally declared' for caching
 s3_client = boto3.client('s3')
 batch_client = boto3.client('batch')
+dynamo_client = boto3.client('dynamodb')
 
 
 def SilenceBoto():
@@ -176,3 +177,17 @@ class Batch:
         logging.debug("Job ID is {}.".format(response['jobId']))
 
         self.jobId = response['jobId']
+
+class DynamoDB:
+    
+    def __init__(self, table_name, model_name):
+        response = dynamo_client.delete_item(
+            TableName=table_name,
+            Key={
+                'Model': {
+                    'S': model_name
+                }
+            }
+        )
+
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Submit_Job"
