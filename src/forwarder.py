@@ -1,7 +1,12 @@
 import os
+import sys
 import json
 import logging
 
+
+# FIX CRAZY BEHAVIOR IN LAMBDA WITH IMPORTS
+CWD = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, CWD)
 import aws
 
 
