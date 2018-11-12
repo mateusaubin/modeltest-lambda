@@ -12,8 +12,11 @@ custom:
   dlqtopic: "${self:service}-${opt:stage, self:provider.stage}-failed"
   inputtopic: "${self:service}-${opt:stage, self:provider.stage}-input"
   sourceBucket: "${self:service}-${opt:stage, self:provider.stage}-phyml"
-  memoryAllocation: "256"
-  batchClusterCpus: 2
+  batch:
+    job-memory: "512"
+    cluster-cpus: 16
+  lambda:
+    power: 1536
   remover:
     buckets:
       - ${self:custom.sourceBucket}
@@ -50,7 +53,7 @@ package:
 functions:
 
   modeltest:
-    memorySize: "${self:custom.memoryAllocation}"
+    memorySize: "${self:custom.lambda.power}"
     timeout: 900
     handler: src/modeltest.execute
     onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
@@ -138,6 +141,19 @@ resources:  # CloudFormation template syntax
               Resource: "arn:aws:s3:::${self:custom.sourceBucket}/*"
         Roles: 
           - Ref: "ECSTaskRole"
+    DynamoInlinePolicy:
+      Type: AWS::IAM::Policy
+      Properties: 
+        PolicyName: "dynamo-access"
+        PolicyDocument: 
+          Version: "2012-10-17"
+          Statement: 
+            - Effect: "Allow"
+              Action: 
+                - "dynamodb:DeleteItem"
+              Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/*"
+        Roles: 
+          - Ref: "ECSTaskRole"
     IamInstanceProfile:
       Type: AWS::IAM::InstanceProfile
       Properties:
@@ -184,7 +200,7 @@ resources:  # CloudFormation template syntax
         ContainerProperties:
           Image: mateusaubin/modeltest-lambda
           Vcpus: 1
-          Memory: ${self:custom.memoryAllocation}
+          Memory: ${self:custom.batch.job-memory}
           Command:
           - Ref::path
           - Ref::cmd
@@ -215,10 +231,10 @@ resources:  # CloudFormation template syntax
         ComputeResources:
           Type: SPOT
           BidPercentage: 30
-          ImageId: ami-09a64272e7fe706b6 #https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+          ImageId: ami-0a0c6574ce16ce87a # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
           MinvCpus: 0
           DesiredvCpus: 0
-          MaxvCpus: ${self:custom.batchClusterCpus}
+          MaxvCpus: ${self:custom.batch.cluster-cpus}
           InstanceTypes:
             - c4
             - c5
