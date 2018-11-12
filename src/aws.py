@@ -177,6 +177,41 @@ class Batch:
         logging.debug("Job ID is {}.".format(response['jobId']))
 
         self.jobId = response['jobId']
+    
+    
+    @staticmethod
+    def shortcircuit(job_queue):
+
+        # queue info
+        response = batch_client.describe_job_queues(jobQueues=[job_queue])
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_Queues"
+        queuedata = response['jobQueues'][0]
+        assert queuedata['state'] == 'ENABLED' and queuedata['status'] == 'VALID', "Queue in invalid state"
+        environment = queuedata['computeEnvironmentOrder'][0]['computeEnvironment']
+
+        # compute info
+        response = batch_client.describe_compute_environments(computeEnvironments=[environment])
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_ComputEnvironments"
+        envdata = response['computeEnvironments'][0]
+        assert envdata['state'] == 'ENABLED' and envdata['status'] == 'VALID', "ComputeEnvironment in invalid state"
+        capacity = envdata['computeResources']['maxvCpus']
+        is_running = envdata['computeResources']['desiredvCpus']
+
+
+        # queue runnable
+        response = batch_client.list_jobs(jobQueue=job_queue,jobStatus='RUNNABLE')
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.List_Jobs"
+        runnable = len(response['jobSummaryList'])
+
+        # queue running
+        response = batch_client.list_jobs(jobQueue=job_queue,jobStatus='RUNNING')
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.List_Jobs"
+        running = len(response['jobSummaryList'])
+
+
+        # should short circuit?
+        return is_running and capacity > (runnable + running)
+
 
 class DynamoDB:
     

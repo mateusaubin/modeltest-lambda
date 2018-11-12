@@ -15,6 +15,13 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 
 
+def shortcircuit():
+    # jobq = os.getenv('BATCH_JOBQUEUE',None)
+    # should = aws.Batch.shortcircuit(jobq)
+    # return should
+    pass
+
+
 def execute(event, context):
     aws.SilenceBoto()
 
@@ -26,6 +33,9 @@ def execute(event, context):
     for record in event['Records']:
 
         logging.info("Subject: {}".format(record['Sns']['Subject']))
+
+        if shortcircuit():
+            continue
 
         # parse
         sns_result = aws.SNS(record['Sns'])
@@ -42,6 +52,7 @@ def execute(event, context):
             "_input_phyml_trace_{}.txt".format(sns_result.jmodel_modelname)
         )
 
+        logging.info("PhyML starting...")
         phyml_start = timer()
         with open(trace_file, "w") as file:
             result = subprocess.run(cmdline_args,
