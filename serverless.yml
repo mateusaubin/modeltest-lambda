@@ -17,6 +17,7 @@ custom:
     cluster-cpus: 16
   lambda:
     power: 1536
+    timeout: 60
   remover:
     buckets:
       - ${self:custom.sourceBucket}
@@ -54,7 +55,7 @@ functions:
 
   modeltest:
     memorySize: "${self:custom.lambda.power}"
-    timeout: 900
+    timeout: "${self:custom.lambda.timeout}"
     handler: src/modeltest.execute
     onError: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.dlqtopic}"
     events:
@@ -254,9 +255,13 @@ resources:  # CloudFormation template syntax
 
 # The "Outputs" that your AWS CloudFormation Stack should produce.  This allows references between services.
   Outputs:
-    InputBucketArn:
-      Description: Bucket which will receive the .phy files
-      Value:
-        "Fn::GetAtt": [ InputBucket, Arn ]
-#      Export:
-#        Name: ${self:service}:${opt:stage, self:provider.stage}:InputBucketArn
+    inputbucket:
+      Value: ${self:custom.sourceBucket}
+    batchclustercpus:
+      Value: ${self:custom.batch.cluster-cpus}
+    lambdapower:
+      Value: ${self:custom.lambda.power}
+    lambdatimeout:
+      Value: ${self:custom.lambda.timeout}
+    inputtopic:
+      Value: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:${self:custom.inputtopic}"
