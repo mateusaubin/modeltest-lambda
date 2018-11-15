@@ -232,7 +232,7 @@ resources:  # CloudFormation template syntax
         ComputeResources:
           Type: SPOT
           BidPercentage: 30
-          ImageId: ami-0a0c6574ce16ce87a # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
+          ImageId: ami-0307f7ccf6ea35750 # https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-optimized_AMI.html
           MinvCpus: 0
           DesiredvCpus: 0
           MaxvCpus: ${self:custom.batch.cluster-cpus}
