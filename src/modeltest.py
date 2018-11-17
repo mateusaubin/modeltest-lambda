@@ -12,7 +12,7 @@ sys.path.insert(0, CWD)
 import aws
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARN)
 
 
 def shortcircuit():

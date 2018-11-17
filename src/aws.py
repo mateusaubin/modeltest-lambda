@@ -29,10 +29,6 @@ def SilenceBoto():
 class SNS:
 
     def __init__(self, sns_message):
-        logging.debug("Processing Message: {}".format(
-            sns_message['Message'])
-        )
-
         assert sns_message['Message'] and sns_message['Subject'], "Malformed SNS Message"
 
         self.file_info = self.__parse(sns_message)
