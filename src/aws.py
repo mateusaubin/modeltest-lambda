@@ -185,6 +185,7 @@ class Batch:
         
         desired = envdata['computeResources']['desiredvCpus']
         if (desired < 1):
+            logging.warn("Triggering update of CPUs in ComputeEnvironment")
             response = batch_client.update_compute_environment(
                 computeEnvironment=job_compute_env,
                 computeResources={
