@@ -16,6 +16,7 @@ logger.setLevel(logging.INFO)
 env = None
 jobdef = os.getenv('BATCH_JOBDEF')
 jobq = os.getenv('BATCH_JOBQUEUE')
+jobcomp = os.getenv('BATCH_COMPUTE')
 sourcetopic = os.getenv('MODELTEST_DLQTOPIC')
 
 def GatherEnvVars():
@@ -69,6 +70,13 @@ def process_sns_record(record):
     return results
 
 
+def trigger_compute():
+    try:
+        aws.Batch.TriggerCompute(jobcomp)
+    except:
+        pass
+
+
 def execute(event, context):
     aws.SilenceBoto()
     
@@ -84,7 +92,9 @@ def execute(event, context):
 
         results.extend(submitted_jobs)
 
-    logging.warn("Jobs Submitted: {}".format(results))
+    trigger_compute()
+
+    logging.info("Jobs Submitted: {}".format(results))
 
     return 0
 

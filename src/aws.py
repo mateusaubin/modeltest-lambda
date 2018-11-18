@@ -176,6 +176,25 @@ class Batch:
     
     
     @staticmethod
+    def TriggerCompute(job_compute_env, set_min=1):
+        
+        response = batch_client.describe_compute_environments(computeEnvironments=[job_compute_env])
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_ComputEnvironments"
+        envdata = response['computeEnvironments'][0]
+        assert envdata['state'] == 'ENABLED' and envdata['status'] == 'VALID', "ComputeEnvironment in invalid state"
+        
+        desired = envdata['computeResources']['desiredvCpus']
+        if (desired < 1):
+            response = batch_client.update_compute_environment(
+                computeEnvironment=job_compute_env,
+                computeResources={
+                    'desiredvCpus': 2**set_min
+                }
+            )
+            assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Update_ComputeEnvironment"
+    
+    
+    @staticmethod
     def shortcircuit(job_queue):
 
         # queue info
