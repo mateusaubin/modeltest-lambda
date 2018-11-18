@@ -7,7 +7,7 @@ import modeltest
 
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(levelname)-8s | %(message)s'
 )
 logger = logging.getLogger()
@@ -32,7 +32,7 @@ info = {
     'jModelRunId':  jmodeltestrunid,
     'SrcRequestId': source_requestid
 }
-logger.warning("Started Docker: {}".format(json.dumps(info)))
+logger.info("Started Docker: {}".format(json.dumps(info)))
 
 
 #cwd = os.getcwd()
@@ -55,7 +55,7 @@ event_obj = {
 if source_requestid:
     event_obj['SourceRequestId'] = source_requestid
 
-logger.info(json.dumps(event_obj))
+logger.debug(json.dumps(event_obj))
 
 from timeit import default_timer as timer
 start = timer()
