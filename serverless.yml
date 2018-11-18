@@ -15,6 +15,7 @@ custom:
   batch:
     job-memory: "512"
     cluster-cpus: 16
+    runner: "aP6"
   lambda:
     power: 1536
     timeout: 60
@@ -76,6 +77,8 @@ functions:
         Ref: BatchJobDef
       BATCH_JOBQUEUE:
         Ref: BatchJobQueue
+      BATCH_COMPUTE:
+        Ref: SpotComputeEnvironment
       MODELTEST_DLQTOPIC: ${self:custom.dlqtopic}
     package:
       include:
@@ -241,6 +244,7 @@ resources:  # CloudFormation template syntax
             - c5
           Tags:
             Name: ${self:service}-${opt:stage, self:provider.stage}-batch-spot
+            Runner: ${self:custom.batch.runner}
           Subnets:
             - subnet-63c53f2f
             - subnet-05bc996d
