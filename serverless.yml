@@ -39,6 +39,8 @@ provider:
     - Effect: Allow
       Action:
         - batch:SubmitJob
+        - batch:DescribeComputeEnvironments
+        - batch:UpdateComputeEnvironment
       Resource: "arn:aws:batch:#{AWS::Region}:#{AWS::AccountId}:*"
     - Effect: Allow
       Action:
