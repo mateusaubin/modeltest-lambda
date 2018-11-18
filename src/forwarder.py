@@ -89,12 +89,16 @@ def execute(event, context):
     for record in event['Records']:
 
         submitted_jobs = process_sns_record(record['Sns'])
-
         results.extend(submitted_jobs)
 
-    trigger_compute()
 
-    logging.info("Jobs Submitted: {}".format(results))
+    if len(results) > 0:
+
+        trigger_compute()
+        logging.info("Jobs Submitted: {}".format(results))
+
+    else:
+        logging.error("Zero jobs submitted")
 
     return 0
 
