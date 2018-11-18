@@ -26,9 +26,10 @@ def GatherEnvVars():
     assert jobq, "Job Queue not found, unable to proceed with job submission"
 
     env = {
-        'JobDefinition': jobdef,
-        'JobQueue':      jobq,
-        'SourceTopic':   sourcetopic
+        'JobDefinition':        jobdef,
+        'JobQueue':             jobq,
+        'SourceTopic':          sourcetopic,
+        'ComputeEnvironment':   jobcomp,
     }
 
 
