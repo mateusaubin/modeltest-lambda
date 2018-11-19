@@ -109,7 +109,7 @@ class S3Upload:
         self.jmodel_runid = sns_result.jmodel_runid
 
         # parse/fix filenames
-        self.files = {x: self.__FixPhymlTraceFilenames(x) for x in files}
+        self.files = {x: self.__FixPhymlTraceFilenames(x, sns_result.jmodel_runid) for x in files}
 
         # send to s3
         self.uploaded_files = self.__upload()
@@ -137,9 +137,9 @@ class S3Upload:
 
         return uploaded
 
-    def __FixPhymlTraceFilenames(self, filename):
+    def __FixPhymlTraceFilenames(self, filename, file_subject):
 
-        remove_redundant = filename.replace("_input_phyml_", "")
+        remove_redundant = filename.replace(file_subject + "_phyml_", "")
         remove_extension = remove_redundant[:-4]
 
         # make sure to keep Model identifier

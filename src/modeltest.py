@@ -49,7 +49,7 @@ def execute(event, context):
 
         trace_file = os.path.join(
             s3_result.tmp_folder,
-            "_input_phyml_trace_{}.txt".format(sns_result.jmodel_modelname)
+            "{}_phyml_trace_{}.txt".format(sns_result.jmodel_runid, sns_result.jmodel_modelname)
         )
 
         logging.info("PhyML starting...")
