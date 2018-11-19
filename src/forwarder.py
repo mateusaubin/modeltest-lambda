@@ -75,7 +75,7 @@ def trigger_compute():
     try:
         aws.Batch.TriggerCompute(jobcomp)
     except:
-        logging.error(sys.exc_info()[0])
+        logging.exception("trigger_compute")
         pass
 
 
