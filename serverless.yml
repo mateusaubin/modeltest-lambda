@@ -19,9 +19,9 @@ custom:
   lambda:
     power: 1536
     timeout: 60
-  remover:
-    buckets:
-      - ${self:custom.sourceBucket}
+  # remover:
+  #   buckets:
+  #     - ${self:custom.sourceBucket}
 
 
 provider:
@@ -41,7 +41,7 @@ provider:
         - batch:SubmitJob
         - batch:DescribeComputeEnvironments
         - batch:UpdateComputeEnvironment
-      Resource: "arn:aws:batch:#{AWS::Region}:#{AWS::AccountId}:*"
+      Resource: "arn:aws:batch:*"
     - Effect: Allow
       Action:
         - dynamodb:DeleteItem
@@ -242,7 +242,6 @@ resources:  # CloudFormation template syntax
           DesiredvCpus: 0
           MaxvCpus: ${self:custom.batch.cluster-cpus}
           InstanceTypes:
-            - c4
             - c5
           Tags:
             Name: ${self:service}-${opt:stage, self:provider.stage}-batch-spot
@@ -265,6 +264,8 @@ resources:  # CloudFormation template syntax
       Value: ${self:custom.sourceBucket}
     batchclustercpus:
       Value: ${self:custom.batch.cluster-cpus}
+    batchrunner:
+      Value: ${self:custom.batch.runner}
     lambdapower:
       Value: ${self:custom.lambda.power}
     lambdatimeout:
