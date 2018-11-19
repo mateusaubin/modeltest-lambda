@@ -41,7 +41,7 @@ def execute(event, context):
         sns_result = aws.SNS(record['Sns'])
 
         # download
-        s3_result = aws.S3Download(sns_result.file_info)
+        s3_result = aws.S3Download(sns_result.file_info, sns_result.jmodel_runid)
 
         cmdline_args = [os.path.join(os.getcwd(), 'lib', 'phyml'), ]
         cmdline_args.extend(['-i', s3_result.local_file])
@@ -76,7 +76,7 @@ def execute(event, context):
         # phyml succeeded, go ahead
 
         result_files = [x for x in os.listdir(
-            s3_result.tmp_folder) if x != "_input"]
+            s3_result.tmp_folder) if x != sns_result.jmodel_runid]
 
         logging.debug("Phyml produced = {}".format(result_files))
 

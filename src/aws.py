@@ -59,9 +59,9 @@ class SNS:
 
 class S3Download:
 
-    def __init__(self, finfo):
+    def __init__(self, finfo, file_subject):
         self.__file_info = finfo
-        self.__generate_temp_paths()
+        self.__generate_temp_paths(file_subject)
 
         if os.path.exists(self.local_file):
             logging.warn("File already exists {}".format(self.local_file))
@@ -69,7 +69,7 @@ class S3Download:
             logging.info("Downloading to: {}".format(self.local_file))
             self.__download()
 
-    def __generate_temp_paths(self):
+    def __generate_temp_paths(self, file_subject):
         self.tmp_folder = os.path.join(
             TEMP_FOLDER_PREFIX, 
             correlation_id
@@ -77,7 +77,7 @@ class S3Download:
         self.local_file = os.path.join(
             TEMP_FOLDER_PREFIX, 
             correlation_id, 
-            "_input"
+            file_subject
         )
 
     def __download(self):
@@ -179,7 +179,7 @@ class Batch:
     def TriggerCompute(job_compute_env, set_min=1):
         
         response = batch_client.describe_compute_environments(computeEnvironments=[job_compute_env])
-        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_ComputEnvironments"
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_ComputeEnvironments"
         envdata = response['computeEnvironments'][0]
         assert envdata['state'] == 'ENABLED' and envdata['status'] == 'VALID', "ComputeEnvironment in invalid state"
         
