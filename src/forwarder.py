@@ -73,7 +73,7 @@ def process_sns_record(record):
 
 def trigger_compute():
     try:
-        aws.Batch.TriggerCompute(jobcomp)
+        aws.Batch.TriggerCompute(jobq, jobcomp)
     except:
         logging.exception("trigger_compute")
         pass

@@ -176,20 +176,35 @@ class Batch:
     
     
     @staticmethod
-    def TriggerCompute(job_compute_env, set_min=1):
+    def TriggerCompute(job_queue, job_compute_env, runnableToCpuRatio=(3/4)):
         
         response = batch_client.describe_compute_environments(computeEnvironments=[job_compute_env])
         assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Describe_ComputeEnvironments"
+
         envdata = response['computeEnvironments'][0]
+        if envdata['status'] == 'UPDATING': 
+            return
+        
         assert envdata['state'] == 'ENABLED' and envdata['status'] == 'VALID', "ComputeEnvironment in invalid state"
+
+        # queue runnable
+        response = batch_client.list_jobs(jobQueue=job_queue,jobStatus='RUNNABLE')
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.List_Jobs"
         
         desired = envdata['computeResources']['desiredvCpus']
-        if (desired < 1):
-            logging.warn("Triggering update of CPUs in ComputeEnvironment")
+        maximum = envdata['computeResources']['maxvCpus']
+        runnable = len(response['jobSummaryList'])
+
+        # cluster size 'heuristic'
+        new_cpus = min(maximum, round(runnable * runnableToCpuRatio))
+
+        if (desired < new_cpus):
+            logging.warn("Triggering update to '{}' CPUs in ComputeEnvironment".format(new_cpus))
+
             response = batch_client.update_compute_environment(
                 computeEnvironment=job_compute_env,
                 computeResources={
-                    'desiredvCpus': 2**set_min
+                    'desiredvCpus': new_cpus
                 }
             )
             assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.Update_ComputeEnvironment"
