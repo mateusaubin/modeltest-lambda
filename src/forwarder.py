@@ -11,7 +11,7 @@ import aws
 
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)
 
 env = None
 jobdef = os.getenv('BATCH_JOBDEF')
