@@ -1,6 +1,7 @@
 import boto3
 import json
 import os
+import math
 from pathlib import Path
 import shutil
 import logging
@@ -196,7 +197,9 @@ class Batch:
         runnable = len(response['jobSummaryList'])
 
         # cluster size 'heuristic'
-        new_cpus = min(maximum, round(runnable * runnableToCpuRatio))
+        gross_new_cpu = runnable * runnableToCpuRatio
+        net_new_cpu = math.ceil(gross_new_cpu / 2.0) * 2    # rounded to nearest even number
+        new_cpus = min(maximum, net_new_cpu)
 
         if (desired < new_cpus):
             logging.warn("Triggering update to '{}' CPUs in ComputeEnvironment".format(new_cpus))
