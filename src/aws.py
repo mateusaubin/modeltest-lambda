@@ -188,21 +188,33 @@ class Batch:
         
         assert envdata['state'] == 'ENABLED' and envdata['status'] == 'VALID', "ComputeEnvironment in invalid state"
 
-        # queue runnable
+        # query runnable
         response = batch_client.list_jobs(jobQueue=job_queue,jobStatus='RUNNABLE')
         assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.List_Jobs"
+        runnable = len(response['jobSummaryList'])
+        # query submitted
+        response = batch_client.list_jobs(jobQueue=job_queue,jobStatus='SUBMITTED')
+        assert response['ResponseMetadata']['HTTPStatusCode'] == 200, "Bad response from Batch.List_Jobs"
+        submitted = len(response['jobSummaryList'])
         
         desired = envdata['computeResources']['desiredvCpus']
         maximum = envdata['computeResources']['maxvCpus']
-        runnable = len(response['jobSummaryList'])
 
         # cluster size 'heuristic'
-        gross_new_cpu = runnable * runnableToCpuRatio
+        gross_new_cpu = (runnable + submitted) * runnableToCpuRatio
         net_new_cpu = math.ceil(gross_new_cpu / 2.0) * 2    # rounded to nearest even number
         new_cpus = min(maximum, net_new_cpu)
+        algorithm_state = { 
+            'RUNNABLE':  runnable,
+            'SUBMITTED': submitted,
+            'DESIRED':   desired,
+            'MAX':       maximum,
+            'STATE':     envdata['state'],
+            'STATUS':    envdata['status']
+        }
 
         if (desired < new_cpus):
-            logging.warn("Triggering update to '{}' CPUs in ComputeEnvironment".format(new_cpus))
+            logging.warn("Triggering update to '{}' CPUs in ComputeEnvironment ({})".format(new_cpus, json.dumps(algorithm_state)))
 
             response = batch_client.update_compute_environment(
                 computeEnvironment=job_compute_env,
