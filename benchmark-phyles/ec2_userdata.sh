@@ -26,8 +26,9 @@ apt install awscli -y
 apt-get install default-jre -y
 
 # jModelTest
+export JMDL_VERSION="bench-6"
 export JMDL_RELEASE="jmodeltest2-aubin"
-wget -q https://github.com/mateusaubin/jmodeltest2/releases/download/bench-4/$JMDL_RELEASE.tar.gz
+wget -q https://github.com/mateusaubin/jmodeltest2/releases/download/$JMDL_VERSION/$JMDL_RELEASE.tar.gz
 tar -xvzf $JMDL_RELEASE.tar.gz
 
 # Benchmark Dependencies
@@ -50,6 +51,7 @@ export MDLTST_S3ADDRESS=s3://mestrado-dev-phyml-fixed/${MDLTST_VCPUS}_${MDLTST_I
 # Trap Handling
 function finish {
   aws s3 sync results/ $MDLTST_S3ADDRESS
+  aws s3 sync /tmp $MDLTST_S3ADDRESS --exclude "*" --include "*_cmds.log"
 
   shutdown -h now
 }
@@ -89,6 +91,7 @@ for filename in $( ls -Sr modeltest-lambda/benchmark-phyles | grep -i '.phy' ); 
 
   # upload partial results
   aws s3 sync results/ $MDLTST_S3ADDRESS
+  aws s3 sync /tmp $MDLTST_S3ADDRESS --exclude "*" --include "*_cmds.log"
 
 done
 
@@ -100,6 +103,7 @@ sleep 5
 # ensure full upload
 echo '#s3-sync#' $(uptime -p) ! $(uptime -s) >> 'results/#_stats.txt'
 aws s3 sync results/ $MDLTST_S3ADDRESS
+aws s3 sync /tmp $MDLTST_S3ADDRESS --exclude "*" --include "*_cmds.log"
 
 sleep 15
 
