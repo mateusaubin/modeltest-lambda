@@ -15,14 +15,10 @@ custom:
 
   runner: "aP6"
   batch:
-    job-memory: "256"
-    cluster-cpus: 16
+    cluster-cpus: 36
   lambda:
     power: 1536
-    timeout: 45
-  # remover:
-  #   buckets:
-  #     - ${self:custom.sourceBucket}
+    timeout: 60
 
 
 provider:
@@ -213,7 +209,7 @@ resources:  # CloudFormation template syntax
         ContainerProperties:
           Image: mateusaubin/modeltest-lambda
           Vcpus: 1
-          Memory: ${self:custom.batch.job-memory}
+          Memory: 512
           Command:
           - Ref::path
           - Ref::cmd
