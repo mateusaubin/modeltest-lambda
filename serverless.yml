@@ -246,6 +246,8 @@ resources:  # CloudFormation template syntax
           MaxvCpus: ${self:custom.batch.cluster-cpus}
           InstanceTypes:
             - c5
+            - c5d
+            - c5n
           Tags:
             Name: ${self:service}-${opt:stage, self:provider.stage}-batch-spot
             Runner: ${self:custom.runner}
