@@ -14,7 +14,8 @@
             "env": {
                 "IS_LOCAL": "True",
                 "VSCODE": "True",
-                "DEBUG_FILE": "samples/aP6.json"
+                "DEBUG_FILE": "samples/aP6.json",
+                "BATCH_JOBQUEUE": "arn:aws:batch:us-east-2:000000000000:job-queue/BatchJobQueue-000000000000000",
             }
         },
         {
@@ -43,8 +44,9 @@
                 "VSCODE": "True",
                 "DEBUG_FILE": "samples/forwarder-aP6.json",
                 "MODELTEST_DLQTOPIC": "mestrado-dev-failed",
-                "BATCH_JOBDEF": "BatchJobDef-17140a15806707c:1",
-                "BATCH_JOBQUEUE": "BatchJobQueue-34d4fde12308baa"
+                "BATCH_JOBDEF": "BatchJobDef-000000000000000:1",
+                "BATCH_JOBQUEUE": "BatchJobQueue-000000000000000",
+                "BATCH_COMPUTE": "SpotComputeEnvironment-000000000000000"
             }
         }
     ]
